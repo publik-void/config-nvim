@@ -93,10 +93,12 @@ endif
 " vim-plug
 " --------
 
+" vim-plug needs to be installed beforehand, no autoinstall here
 " i chose the directory name plugged as suggested by the vim-plug readme
 call plug#begin('~/.config/nvim/plugged')
 Plug 'scrooloose/nerdcommenter'
 Plug 'ctrlpvim/ctrlp.vim'
+" YCM needs a working python environment and cmake to install itself
 Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer' }
 call plug#end()
 
