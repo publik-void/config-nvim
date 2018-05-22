@@ -1,5 +1,6 @@
 " init.vim or '.vimrc' file thrown together by me (incredigital)
 
+" get hostname to allow for platform-dependent customization
 let s:hostname = substitute(system('hostname'), '\n', '', '')
 
 " --------
@@ -60,32 +61,33 @@ let g:loaded_python3_provider = 1
 " --------
 " this section needs further revision to suit my bsd system
 
-" tells clang-format.py where clang-format is located
 if s:hostname == "lasse-mbp-0"
+  " tells clang-format.py where clang-format is located
   let g:clang_format_path = '/usr/local/opt/llvm/bin/clang-format'
-elseif s:hostname == "lasse-bsd-0"
 
-endif
-
-function FormatFile()
-  let l:lines="all"
-  pyf /usr/local/opt/llvm/share/clang/clang-format.py
-endfunction
-
-" defined by myself (incredigital)
-let g:no_clang_format_on_save = 0
-
-function! Formatonsave()
-  if g:no_clang_format_on_save == 0
-    let l:formatdiff = 1
+  function FormatFile()
+    let l:lines="all"
     pyf /usr/local/opt/llvm/share/clang/clang-format.py
-  endif
-endfunction
-autocmd BufWritePre *.h,*.hpp,*.hxx,*.c,*.cpp,*.cxx,*.C,*.cc call Formatonsave()
-
-nnoremap <c-f> :call FormatFile()<cr>
-vnoremap <c-f> :pyf /usr/local/opt/llvm/share/clang/clang-format.py<cr>
-inoremap <c-f> <c-o>:silent pyf /usr/local/opt/llvm/share/clang/clang-format.py<cr>
+  endfunction
+  
+  " defined by myself (incredigital)
+  let g:no_clang_format_on_save = 0
+  
+  function! Formatonsave()
+    if g:no_clang_format_on_save == 0
+      let l:formatdiff = 1
+      pyf /usr/local/opt/llvm/share/clang/clang-format.py
+    endif
+  endfunction
+  autocmd BufWritePre *.h,*.hpp,*.hxx,*.c,*.cpp,*.cxx,*.C,*.cc call Formatonsave()
+  
+  nnoremap <c-f> :call FormatFile()<cr>
+  vnoremap <c-f> :pyf /usr/local/opt/llvm/share/clang/clang-format.py<cr>
+  inoremap <c-f> <c-o>:silent pyf /usr/local/opt/llvm/share/clang/clang-format.py<cr>
+  
+elseif s:hostname == "lasse-bsd-0"
+  
+endif
 
 " --------
 " vim-plug
@@ -107,7 +109,7 @@ if s:hostname == "lasse-mbp-0"
 elseif s:hostname == "lasse-bsd-0"
   let g:ycm_server_python_interpreter = '/usr/local/bin/python2.7'
 endif
-" let g:ycm_python_binary_path = '/usr/local/bin/python3'
+"let g:ycm_python_binary_path = '/usr/local/bin/python3'
 let g:ycm_error_symbol = 'E>'
 let g:ycm_warning_symbol = 'W>'
 let g:ycm_complete_in_comments = 1
