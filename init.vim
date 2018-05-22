@@ -47,6 +47,7 @@ let g:netrw_liststyle=3
 " providers
 " --------
 
+" python needs the neovim package installed
 " Set the location of the python binary. provider.txt says setting this makes startup faster
 if s:hostname == "lasse-mbp-0"
   let g:python_host_prog = '/usr/local/bin/python2'
