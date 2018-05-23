@@ -54,8 +54,10 @@ if s:hostname == "lasse-mbp-0"
 elseif s:hostname == "lasse-bsd-0"
   let g:python_host_prog = '/usr/local/bin/python2.7'
 endif
-" not sure if this is sensible, but i guess it doesn't hurt, especially when i don't have python3 installed anyway
+" not sure if this is sensible, but i guess it doesn't hurt
 let g:loaded_python3_provider = 1
+let g:loaded_ruby_provider = 1
+let g:loaded_node_provider = 1
 
 " --------
 " for clang-format integration
