@@ -9,6 +9,7 @@ let s:hostname = substitute(system('hostname'), '\n', '', '')
 
 set whichwrap+=<,>,h,l,[,]
 set mouse=a
+set mousemodel=popup_setpos " i might want to configure a menu for this
 set path+=**
 set clipboard+=unnamedplus
 set number
@@ -34,6 +35,9 @@ inoremap <c-j> <Esc>:m .+1<CR>==gi
 inoremap <c-k> <Esc>:m .-2<CR>==gi
 vnoremap <c-j> :m '>+1<CR>gv=gv
 vnoremap <c-k> :m '<-2<CR>gv=gv
+
+" Enable spell checking
+"set spell spelllang=en_us
 
 " Use solarized color scheme :)
 set background=dark
