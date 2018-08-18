@@ -7,28 +7,62 @@ let s:hostname = substitute(system('hostname'), '\n', '', '')
 " Miscellaneous things
 " --------
 
+" To form better habits
+noremap <Up> <NOP>
+noremap <Down> <NOP>
+noremap <Left> <NOP>
+noremap <Right> <NOP>
+
+" All kinds of stuff
 set whichwrap+=<,>,h,l,[,]
 set mouse=a
 set mousemodel=popup_setpos " i might want to configure a menu for this
 set path+=**
 set clipboard+=unnamedplus
-set number
-set relativenumber
-set so=7
-" set cmdheight=2
+"set so=7
+"set cmdheight=2
 set ignorecase
 set smartcase
-set hlsearch
 set incsearch 
 set lazyredraw 
+set laststatus=2
+set statusline=%{getcwd()}%=%f%m%r%h%w%=%l,%c%V\ %P
+set cursorline
+
+" Line Numbering
+set number
+set relativenumber
+set numberwidth=1
+
+" Folding
+set foldmethod=syntax
+set fillchars=vert:\|,fold:\ 
+"set foldnestmax=1
+"set foldminlines=2
+nnoremap <Space> za
+
+" Search
+set hlsearch
+nnoremap /<CR> :noh<CR>
+
+" Tabbing, Indenting
 set expandtab
 set shiftwidth=2
 set tabstop=2
 set cindent
-set laststatus=2
-set statusline=%{getcwd()}%=%f%m%r%h%w%=%l,%c%V\ %P
 
-" from http://vim.wikia.com/wiki/Moving_lines_up_or_down
+" Show 81st column
+set colorcolumn=80
+" I don't set an explicit highlight color, since the default light and dark
+" solarized colors work nicely
+
+" Show whitespace characters
+set listchars=tab:+-,nbsp:·,trail:·
+set list
+" The following is a line with a tab, trailing whitespace and a nbsp.
+	" OK... Here is the nbsp:  And here is some whitespace:    
+
+" Moving lines up and down
 nnoremap <c-j> :m .+1<CR>==
 nnoremap <c-k> :m .-2<CR>==
 inoremap <c-j> <Esc>:m .+1<CR>==gi
@@ -40,8 +74,30 @@ vnoremap <c-k> :m '<-2<CR>gv=gv
 "set spell spelllang=en_us
 
 " Use solarized color scheme :)
-set background=dark
+"let g:solarized_visibility = "low"
+function! SolarizedOverrides()
+  if &background == "light"
+    hi! MatchParen ctermbg=7
+    hi! WhiteSpace ctermbg=7
+  else
+    hi! MatchParen ctermbg=0
+    hi! WhiteSpace ctermbg=0
+  endif
+endfunction
+autocmd colorscheme solarized call SolarizedOverrides()
 colorscheme solarized
+set background=dark
+function! ToggleBackground()
+  " Solarized comes with a ToggleBackground plugin, but I figured I might as
+  " well just write a function. Down't know if the plugin does more than just
+  " toggling the background like this function, though.
+  if &background == "light"
+    set background=dark
+  else
+    set background=light
+  endif
+endfunction
+nnoremap + :call ToggleBackground()<Esc>
 
 " for vim's native netrw browser
 " let g:netrw_banner=0
@@ -74,7 +130,7 @@ if s:hostname == "lasse-mbp-0"
   " tells clang-format.py where clang-format is located
   let g:clang_format_path = '/usr/local/opt/llvm/bin/clang-format'
 
-  function FormatFile()
+  function! FormatFile()
     let l:lines="all"
     pyf /usr/local/opt/llvm/share/clang/clang-format.py
   endfunction
@@ -109,6 +165,10 @@ Plug 'scrooloose/nerdcommenter'
 Plug 'ctrlpvim/ctrlp.vim'
 " YCM needs a working python environment and cmake to install itself
 Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer' }
+Plug 'dag/vim-fish'
+" I'll need miniyank until block pasting on macos with clipboard=unnamed is
+" fixed in neovim
+Plug 'bfredl/nvim-miniyank'
 call plug#end()
 
 " --------
@@ -143,3 +203,20 @@ nmap <c-l> <leader>cl2l
 imap <c-l> <c-o><leader>cl<right><right>
 let NERDCommentWholeLinesInVMode=1
 
+" --------
+" for vim-fish
+" --------
+
+" Set up :make to use fish for syntax checking.
+autocmd FileType fish compiler fish
+" Set this to have long lines wrap inside comments.
+autocmd FileType fish setlocal textwidth=79
+" Enable folding of block structures in fish.
+autocmd FileType fish setlocal foldmethod=expr
+
+" --------
+" for nvim-miniyank
+" --------
+
+map p <Plug>(miniyank-autoput)
+map P <Plug>(miniyank-autoPut)
