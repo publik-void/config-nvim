@@ -28,6 +28,7 @@ set lazyredraw
 set laststatus=2
 set statusline=%{getcwd()}%=%f%m%r%h%w%=%l,%c%V\ %P
 set cursorline
+set shell=sh
 
 " Line Numbering
 set number
@@ -169,6 +170,8 @@ Plug 'dag/vim-fish'
 " I'll need miniyank until block pasting on macos with clipboard=unnamed is
 " fixed in neovim
 Plug 'bfredl/nvim-miniyank'
+Plug 'francoiscabrol/ranger.vim'
+Plug 'rbgrouleff/bclose.vim' " Dependency of ranger.vim
 call plug#end()
 
 " --------
@@ -220,3 +223,10 @@ autocmd FileType fish setlocal foldmethod=expr
 
 map p <Plug>(miniyank-autoput)
 map P <Plug>(miniyank-autoPut)
+
+" --------
+" for nvim-miniyank
+" --------
+
+let g:ranger_map_keys = 1
+let g:ranger_replace_netrw = 1
