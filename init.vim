@@ -53,7 +53,7 @@ set tabstop=2
 set cindent
 
 " Show 81st column
-set colorcolumn=80
+set colorcolumn=81
 " I don't set an explicit highlight color, since the default light and dark
 " solarized colors work nicely
 
