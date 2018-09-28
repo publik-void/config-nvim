@@ -112,9 +112,9 @@ let g:netrw_liststyle=3
 " Set the location of the python binary. provider.txt says setting this makes startup faster
 if s:hostname == "lasse-mbp-0"
   let g:python_host_prog = '/usr/local/bin/python2'
+elseif s:hostname == "lasse-mba-0"
+  let g:python_host_prog = '/usr/local/bin/python2'
 elseif s:hostname == "lasse-bsd-0"
-  let g:python_host_prog = '/usr/local/bin/python2.7'
-elseif s:hostname == "lasse-bsd-1"
   let g:python_host_prog = '/usr/local/bin/python2.7'
 endif
 " not sure if this is sensible, but i guess it doesn't hurt
@@ -151,6 +151,8 @@ if s:hostname == "lasse-mbp-0"
   vnoremap <c-f> :pyf /usr/local/opt/llvm/share/clang/clang-format.py<cr>
   inoremap <c-f> <c-o>:silent pyf /usr/local/opt/llvm/share/clang/clang-format.py<cr>
   
+elseif s:hostname == "lasse-mba-0"
+  
 elseif s:hostname == "lasse-bsd-0"
   
 endif
@@ -182,9 +184,9 @@ call plug#end()
 
 if s:hostname == "lasse-mbp-0"
   let g:ycm_server_python_interpreter = '/usr/local/bin/python2'
+elseif s:hostname == "lasse-mba-0"
+  let g:ycm_server_python_interpreter = '/usr/local/bin/python2'
 elseif s:hostname == "lasse-bsd-0"
-  let g:ycm_server_python_interpreter = '/usr/local/bin/python2.7'
-elseif s:hostname == "lasse-bsd-1"
   let g:ycm_server_python_interpreter = '/usr/local/bin/python2.7'
 endif
 "let g:ycm_python_binary_path = '/usr/local/bin/python3'
