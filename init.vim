@@ -15,8 +15,6 @@ noremap <Right> <NOP>
 
 " All kinds of stuff
 set whichwrap+=<,>,h,l,[,]
-set mouse=a
-set mousemodel=popup_setpos " i might want to configure a menu for this
 set path+=**
 set clipboard+=unnamedplus
 "set so=7
@@ -29,6 +27,14 @@ set laststatus=2
 set statusline=%{getcwd()}%=%f%m%r%h%w%=%l,%c%V\ %P
 set cursorline
 set shell=sh
+
+" Mouse Behavior
+set mouse=a
+set mousemodel=popup_setpos " i might want to configure a menu for this
+:map <ScrollWheelUp> <C-Y>
+:map <S-ScrollWheelUp> <C-U>
+:map <ScrollWheelDown> <C-E>
+:map <S-ScrollWheelDown> <C-D>
 
 " Line Numbering
 set number
