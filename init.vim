@@ -241,14 +241,14 @@ map P <Plug>(miniyank-autoPut)
 let g:ranger_map_keys = 1
 let g:ranger_replace_netrw = 1
 
-" --------
-" for vim-indentguides
-" --------
-
-" I might want to adjust this color to something a little more subtle
-" I might also want to find a second color for the bright solarized scheme
-let g:indentguides_conceal_color = 'ctermfg=10 ctermbg=NONE guifg=Grey27 guibg=NONE'
-let g:indentguides_specialkey_color = 'ctermfg=10 ctermbg=NONE guifg=Grey27 guibg=NONE'
-" This character is not ideal as it overlaps into the previous line
-let g:indentguides_spacechar = "⎸"
+"" --------
+"" for vim-indentguides
+"" --------
+"
+"" I might want to adjust this color to something a little more subtle
+"" I might also want to find a second color for the bright solarized scheme
+"let g:indentguides_conceal_color = 'ctermfg=10 ctermbg=NONE guifg=Grey27 guibg=NONE'
+"let g:indentguides_specialkey_color = 'ctermfg=10 ctermbg=NONE guifg=Grey27 guibg=NONE'
+"" This character is not ideal as it overlaps into the previous line
+"let g:indentguides_spacechar = "⎸"
 
