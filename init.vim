@@ -180,7 +180,7 @@ Plug 'dag/vim-fish'
 Plug 'bfredl/nvim-miniyank'
 Plug 'francoiscabrol/ranger.vim'
 Plug 'rbgrouleff/bclose.vim' " Dependency of ranger.vim
-Plug 'thaerkh/vim-indentguides'
+"Plug 'thaerkh/vim-indentguides'
 " at some point I should probably consider that surround plugin everyone uses :D
 call plug#end()
 
