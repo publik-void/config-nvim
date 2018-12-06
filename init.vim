@@ -27,6 +27,7 @@ set laststatus=2
 set statusline=%{getcwd()}%=%f%m%r%h%w%=%l,%c%V\ %P
 set cursorline
 set shell=sh
+set wildmode=longest:full
 
 " Mouse Behavior
 set mouse=a
