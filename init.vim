@@ -14,19 +14,19 @@ noremap <Left> <NOP>
 noremap <Right> <NOP>
 
 " All kinds of stuff
-set whichwrap+=<,>,h,l,[,]
+set whichwrap+=<,>,h,l,[,],~
 set path+=**
 set clipboard+=unnamedplus
 "set so=7
 "set cmdheight=2
 set ignorecase
 set smartcase
-set incsearch 
-set lazyredraw 
+set incsearch
+set lazyredraw
 set laststatus=2
 set statusline=%{getcwd()}%=%f%m%r%h%w%=%l,%c%V\ %P
 set cursorline
-set shell=sh
+set shell=fish\ --interactive\ --login
 set wildmode=longest:full
 
 " Mouse Behavior
