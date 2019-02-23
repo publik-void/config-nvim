@@ -7,12 +7,6 @@ let s:hostname = substitute(system('hostname'), '\n', '', '')
 " Miscellaneous things
 " --------
 
-" To form better habits
-noremap <Up> <NOP>
-noremap <Down> <NOP>
-noremap <Left> <NOP>
-noremap <Right> <NOP>
-
 " All kinds of stuff
 set whichwrap+=<,>,h,l,[,],~
 set path+=**
@@ -32,10 +26,34 @@ set wildmode=longest:full
 " Mouse Behavior
 set mouse=a
 set mousemodel=popup_setpos " i might want to configure a menu for this
-:map <ScrollWheelUp> <C-Y>
-:map <S-ScrollWheelUp> <C-U>
-:map <ScrollWheelDown> <C-E>
-:map <S-ScrollWheelDown> <C-D>
+
+" This disables the mouse/touchpad scrolling. Since I'm mostly working with
+" Apple touchpads and terminal emulators which support sending arrow keys in
+" response to mouse wheel events in alternate screen mode, the smoothness of
+" scrolling can be greatly improved by remapping the arrow keys to do the
+" scrolling. Unfortunately, as of 2019-02, Neovim has a bug which leaves
+" scrolling enabled even when all scroll wheel actions are remapped to <nop>.
+" Here's a corresponding GtiHub issue:
+" https://github.com/neovim/neovim/issues/6211
+map <ScrollWheelUp> <nop>
+map <S-ScrollWheelUp> <nop>
+map <C-ScrollWheelUp> <nop>
+map <ScrollWheelDown> <nop>
+map <S-ScrollWheelDown> <nop>
+map <C-ScrollWheelDown> <nop>
+map <ScrollWheelLeft> <nop>
+map <S-ScrollWheelLeft> <nop>
+map <C-ScrollWheelLeft> <nop>
+map <ScrollWheelRight> <nop>
+map <S-ScrollWheelRight> <nop>
+map <C-ScrollWheelRight> <nop>
+
+" Remap arrow keys to do scrolling
+" This has the added advantage of avoiding bad cursor movement habits ;)
+map <Up> <C-y>
+map <Down> <C-e>
+map <Left> <NOP>
+map <Right> <NOP>
 
 " Line Numbering
 set number
