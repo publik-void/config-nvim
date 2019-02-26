@@ -197,7 +197,6 @@ Plug 'dag/vim-fish'
 " I'll need miniyank until block pasting on macos with clipboard=unnamed is
 " fixed in neovim
 Plug 'bfredl/nvim-miniyank'
-Plug 'fcpg/vim-osc52' " remote clipboard sync support
 Plug 'francoiscabrol/ranger.vim'
 Plug 'rbgrouleff/bclose.vim' " Dependency of ranger.vim
 "Plug 'thaerkh/vim-indentguides'
