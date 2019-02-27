@@ -10,7 +10,6 @@ let s:hostname = substitute(system('hostname'), '\n', '', '')
 " All kinds of stuff
 set whichwrap+=<,>,h,l,[,],~
 set path+=**
-set clipboard+=unnamedplus
 "set so=7
 "set cmdheight=2
 set ignorecase
@@ -23,6 +22,18 @@ set cursorline
 set shell=fish\ --interactive\ --login
 set wildmode=longest:full
 
+" Clipboard
+set clipboard+=unnamedplus
+" I should look into using the OSC 52 escape sequence to allow local clipboard
+" access over ssh. However, I have a hard time getting this to work properly.
+" Right now, any vim plugins or functions are not quite working for me and the
+" release version of mosh does not even support that escape sequence (yet!).
+" Also, tmux needs a workaround for compatibility to mosh. And at the time of
+" writing, I still depend on the plugin bfredl/nvim-miniyank to be able to do
+" proper block pasting in neovim.
+" So all in all, it might be worth waiting a bit until some of that software has
+" matured a bit more.
+
 " Mouse Behavior
 set mouse=a
 set mousemodel=popup_setpos " i might want to configure a menu for this
@@ -33,7 +44,7 @@ set mousemodel=popup_setpos " i might want to configure a menu for this
 " scrolling can be greatly improved by remapping the arrow keys to do the
 " scrolling. Unfortunately, as of 2019-02, Neovim has a bug which leaves
 " scrolling enabled even when all scroll wheel actions are remapped to <nop>.
-" Here's a corresponding GtiHub issue:
+" Here's a corresponding GitHub issue:
 " https://github.com/neovim/neovim/issues/6211
 map <ScrollWheelUp> <nop>
 map <S-ScrollWheelUp> <nop>
@@ -139,8 +150,10 @@ if s:hostname == "lasse-mbp-0"
   let g:python_host_prog = '/usr/local/bin/python2'
 elseif s:hostname == "lasse-mba-0"
   let g:python_host_prog = '/usr/local/bin/python2'
-elseif s:hostname == "lasse-bsd-0"
+elseif s:hostname == "lasse-bsd-1"
   let g:python_host_prog = '/usr/local/bin/python2.7'
+elseif s:hostname == "lasse-ubuntu-0"
+  let g:python_host_prog = '/usr/bin/python2.7'
 endif
 " not sure if this is sensible, but i guess it doesn't hurt
 let g:loaded_python3_provider = 1
@@ -212,10 +225,11 @@ if s:hostname == "lasse-mbp-0"
   let g:ycm_server_python_interpreter = '/usr/local/bin/python2'
 elseif s:hostname == "lasse-mba-0"
   let g:ycm_server_python_interpreter = '/usr/local/bin/python2'
-elseif s:hostname == "lasse-bsd-0"
+elseif s:hostname == "lasse-bsd-1"
   let g:ycm_server_python_interpreter = '/usr/local/bin/python2.7'
+elseif s:hostname == "lasse-ubuntu-0"
+  let g:ycm_server_python_interpreter = '/usr/bin/python2.7'
 endif
-"let g:ycm_python_binary_path = '/usr/local/bin/python3'
 let g:ycm_error_symbol = 'E>'
 let g:ycm_warning_symbol = 'W>'
 let g:ycm_complete_in_comments = 1
