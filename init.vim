@@ -86,7 +86,6 @@ nnoremap /<CR> :noh<CR>
 set expandtab
 set shiftwidth=2
 set tabstop=2
-set cindent
 
 " Show 81st column
 set colorcolumn=81
@@ -95,7 +94,7 @@ set colorcolumn=81
 set textwidth=80
 " I'll try to use this as a global setting, maybe that's a stupid idea.
 " I can still add filetype-dependent overrides though.
-" For reformatting, use gq. :help gq might help 😉
+" For reformatting, use gq or gw. :help gq and :help gw might help 😉
 
 " Show whitespace characters
 set listchars=tab:+-,nbsp:·,trail:·
