@@ -215,6 +215,8 @@ Plug 'rbgrouleff/bclose.vim' " Dependency of ranger.vim
 "Plug 'thaerkh/vim-indentguides'
 " at some point I should probably consider that surround plugin everyone uses :D
 Plug 'junegunn/goyo.vim'
+Plug 'matcatc/vim-asciidoc-folding' " I'll need this as long as the official
+" asciidoc syntax support does not support folding
 call plug#end()
 
 " --------
@@ -286,3 +288,8 @@ let g:ranger_replace_netrw = 1
 "" This character is not ideal as it overlaps into the previous line
 "let g:indentguides_spacechar = "⎸"
 
+" --------
+" for vim-asciidoc-folding
+" --------
+
+autocmd FileType asciidoc setlocal foldmethod=expr
