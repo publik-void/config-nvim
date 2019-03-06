@@ -60,7 +60,7 @@ map <S-ScrollWheelRight> <nop>
 map <C-ScrollWheelRight> <nop>
 
 " Remap arrow keys to do scrolling
-" This has the added advantage of avoiding bad cursor movement habits ;)
+" This has the added advantage of avoiding bad cursor movement habits 😉
 map <Up> <C-y>
 map <Down> <C-e>
 map <Left> <NOP>
@@ -92,6 +92,10 @@ set cindent
 set colorcolumn=81
 " I don't set an explicit highlight color, since the default light and dark
 " solarized colors work nicely
+set textwidth=80
+" I'll try to use this as a global setting, maybe that's a stupid idea.
+" I can still add filetype-dependent overrides though.
+" For reformatting, use gq. :help gq might help 😉
 
 " Show whitespace characters
 set listchars=tab:+-,nbsp:·,trail:·
@@ -110,7 +114,7 @@ vnoremap <c-k> :m '<-2<CR>gv=gv
 " Enable spell checking
 "set spell spelllang=en_us
 
-" Use solarized color scheme :)
+" Use solarized color scheme 🙂
 "let g:solarized_visibility = "low"
 function! SolarizedOverrides()
   if &background == "light"
@@ -213,7 +217,7 @@ Plug 'bfredl/nvim-miniyank'
 Plug 'francoiscabrol/ranger.vim'
 Plug 'rbgrouleff/bclose.vim' " Dependency of ranger.vim
 "Plug 'thaerkh/vim-indentguides'
-" at some point I should probably consider that surround plugin everyone uses :D
+" at some point I should probably consider that surround plugin everyone uses 😄
 Plug 'junegunn/goyo.vim'
 Plug 'matcatc/vim-asciidoc-folding' " I'll need this as long as the official
 " asciidoc syntax support does not support folding
@@ -259,7 +263,7 @@ let NERDCommentWholeLinesInVMode=1
 " Set up :make to use fish for syntax checking.
 autocmd FileType fish compiler fish
 " Set this to have long lines wrap inside comments.
-autocmd FileType fish setlocal textwidth=79
+autocmd FileType fish setlocal textwidth=80
 " Enable folding of block structures in fish.
 autocmd FileType fish setlocal foldmethod=expr
 
