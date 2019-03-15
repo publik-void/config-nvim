@@ -66,6 +66,9 @@ map <Down> <C-e>
 map <Left> <NOP>
 map <Right> <NOP>
 
+" Reduce key code delays
+set ttimeoutlen=20
+
 " Line Numbering
 set number
 set relativenumber
