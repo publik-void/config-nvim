@@ -220,6 +220,8 @@ Plug 'rbgrouleff/bclose.vim' " Dependency of ranger.vim
 Plug 'junegunn/goyo.vim'
 Plug 'matcatc/vim-asciidoc-folding' " I'll need this as long as the official
 " asciidoc syntax support does not support folding
+Plug 'https://github.com/arnoudbuzing/wolfram-vim.git' " This is only a syntax
+" file, not a 'real' plugin
 call plug#end()
 
 " --------
@@ -296,3 +298,12 @@ let g:ranger_replace_netrw = 1
 " --------
 
 autocmd FileType asciidoc setlocal foldmethod=expr
+
+" --------
+" for wolfram-vim
+" --------
+
+autocmd BufNewFile,BufRead *.wl set syntax=wl
+autocmd BufNewFile,BufRead *.wls set syntax=wl
+autocmd BufNewFile,BufRead *.m set syntax=wl
+autocmd BufNewFile,BufRead *.nb set syntax=wl
