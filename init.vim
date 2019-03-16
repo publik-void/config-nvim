@@ -179,7 +179,7 @@ set incsearch
 set hlsearch
 nnoremap /<cr> :noh<cr>
 nnoremap - :%s///g<left><left><left>
-nnoremap _ :%s///g<left><left><left><c-r><c-w>
+nnoremap _ :%s///g<left><left><left><c-r><c-w><right>
 
 """ Tabbing, whitespace, indenting
 
