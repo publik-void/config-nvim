@@ -127,26 +127,106 @@ set clipboard+=unnamedplus
 set mouse=a
 set mousemodel=popup_setpos " i might want to configure a menu for this
 
-" This disables the mouse/touchpad scrolling. Since I'm mostly working with
-" Apple touchpads and terminal emulators which support sending arrow keys in
-" response to mouse wheel events in alternate screen mode, the smoothness of
-" scrolling can be greatly improved by remapping the arrow keys to do the
-" scrolling. Unfortunately, as of 2019-02, Neovim has a bug which leaves
-" scrolling enabled even when all scroll wheel actions are remapped to <nop>.
+" Weird looking scroll wheel mapping.
 " Here's a corresponding GitHub issue:
 " https://github.com/neovim/neovim/issues/6211
-map <ScrollWheelup> <nop>
-map <s-ScrollWheelup> <nop>
-map <c-ScrollWheelup> <nop>
-map <ScrollWheeldown> <nop>
-map <s-ScrollWheeldown> <nop>
-map <c-ScrollWheeldown> <nop>
-map <ScrollWheelleft> <nop>
-map <s-ScrollWheelleft> <nop>
-map <c-ScrollWheelleft> <nop>
-map <ScrollWheelright> <nop>
-map <s-ScrollWheelright> <nop>
-map <c-ScrollWheelright> <nop>
+map <ScrollWheelUp> <c-y>
+map <s-ScrollWheelUp> <c-y>
+map <c-ScrollWheelUp> <c-y>
+map <ScrollWheelDown> <c-e>
+map <s-ScrollWheelDown> <c-e>
+map <c-ScrollWheelDown> <c-e>
+map <ScrollWheelLeft> <nop>
+map <s-ScrollWheelLeft> <nop>
+map <c-ScrollWheelLeft> <nop>
+map <ScrollWheelRight> <nop>
+map <s-ScrollWheelRight> <nop>
+map <c-ScrollWheelRight> <nop>
+map <2-ScrollWheelUp> <c-y>
+map <s-2-ScrollWheelUp> <c-y>
+map <c-2-ScrollWheelUp> <c-y>
+map <2-ScrollWheelDown> <c-e>
+map <s-2-ScrollWheelDown> <c-e>
+map <c-2-ScrollWheelDown> <c-e>
+map <2-ScrollWheelLeft> <nop>
+map <s-2-ScrollWheelLeft> <nop>
+map <c-2-ScrollWheelLeft> <nop>
+map <2-ScrollWheelRight> <nop>
+map <s-2-ScrollWheelRight> <nop>
+map <c-2-ScrollWheelRight> <nop>
+map <3-ScrollWheelUp> <c-y>
+map <s-3-ScrollWheelUp> <c-y>
+map <c-3-ScrollWheelUp> <c-y>
+map <3-ScrollWheelDown> <c-e>
+map <s-3-ScrollWheelDown> <c-e>
+map <c-3-ScrollWheelDown> <c-e>
+map <3-ScrollWheelLeft> <nop>
+map <s-3-ScrollWheelLeft> <nop>
+map <c-3-ScrollWheelLeft> <nop>
+map <3-ScrollWheelRight> <nop>
+map <s-3-ScrollWheelRight> <nop>
+map <c-3-ScrollWheelRight> <nop>
+map <4-ScrollWheelUp> <c-y>
+map <s-4-ScrollWheelUp> <c-y>
+map <c-4-ScrollWheelUp> <c-y>
+map <4-ScrollWheelDown> <c-e>
+map <s-4-ScrollWheelDown> <c-e>
+map <c-4-ScrollWheelDown> <c-e>
+map <4-ScrollWheelLeft> <nop>
+map <s-4-ScrollWheelLeft> <nop>
+map <c-4-ScrollWheelLeft> <nop>
+map <4-ScrollWheelRight> <nop>
+map <s-4-ScrollWheelRight> <nop>
+map <c-4-ScrollWheelRight> <nop>
+
+"map <ScrollWheelUp> <nop>
+"map <s-ScrollWheelUp> <nop>
+"map <c-ScrollWheelUp> <nop>
+"map <ScrollWheelDown> <nop>
+"map <s-ScrollWheelDown> <nop>
+"map <c-ScrollWheelDown> <nop>
+"map <ScrollWheelLeft> <nop>
+"map <s-ScrollWheelLeft> <nop>
+"map <c-ScrollWheelLeft> <nop>
+"map <ScrollWheelRight> <nop>
+"map <s-ScrollWheelRight> <nop>
+"map <c-ScrollWheelRight> <nop>
+"map <2-ScrollWheelUp> <nop>
+"map <s-2-ScrollWheelUp> <nop>
+"map <c-2-ScrollWheelUp> <nop>
+"map <2-ScrollWheelDown> <nop>
+"map <s-2-ScrollWheelDown> <nop>
+"map <c-2-ScrollWheelDown> <nop>
+"map <2-ScrollWheelLeft> <nop>
+"map <s-2-ScrollWheelLeft> <nop>
+"map <c-2-ScrollWheelLeft> <nop>
+"map <2-ScrollWheelRight> <nop>
+"map <s-2-ScrollWheelRight> <nop>
+"map <c-2-ScrollWheelRight> <nop>
+"map <3-ScrollWheelUp> <nop>
+"map <s-3-ScrollWheelUp> <nop>
+"map <c-3-ScrollWheelUp> <nop>
+"map <3-ScrollWheelDown> <nop>
+"map <s-3-ScrollWheelDown> <nop>
+"map <c-3-ScrollWheelDown> <nop>
+"map <3-ScrollWheelLeft> <nop>
+"map <s-3-ScrollWheelLeft> <nop>
+"map <c-3-ScrollWheelLeft> <nop>
+"map <3-ScrollWheelRight> <nop>
+"map <s-3-ScrollWheelRight> <nop>
+"map <c-3-ScrollWheelRight> <nop>
+"map <4-ScrollWheelUp> <nop>
+"map <s-4-ScrollWheelUp> <nop>
+"map <c-4-ScrollWheelUp> <nop>
+"map <4-ScrollWheelDown> <nop>
+"map <s-4-ScrollWheelDown> <nop>
+"map <c-4-ScrollWheelDown> <nop>
+"map <4-ScrollWheelLeft> <nop>
+"map <s-4-ScrollWheelLeft> <nop>
+"map <c-4-ScrollWheelLeft> <nop>
+"map <4-ScrollWheelRight> <nop>
+"map <s-4-ScrollWheelRight> <nop>
+"map <c-4-ScrollWheelRight> <nop>
 
 " Remap arrow keys to do scrolling
 " This has the added advantage of avoiding bad cursor movement habits 😉
