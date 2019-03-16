@@ -23,8 +23,6 @@ set statusline=%{getcwd()}%=%f%m%r%h%w%=%l,%c%V\ %P
 set cursorline
 set shell=fish\ --interactive\ --login
 set wildmode=longest:full
-nmap <CR> :
-vmap <CR> :
 
 " Clipboard
 set clipboard+=unnamedplus
