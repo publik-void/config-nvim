@@ -24,6 +24,8 @@ set cursorline
 set shell=fish\ --interactive\ --login
 set wildmode=longest:full
 
+nmap <bs> <c-^>
+
 " Clipboard
 set clipboard+=unnamedplus
 " I should look into using the OSC 52 escape sequence to allow local clipboard
@@ -151,6 +153,8 @@ function! ToggleBackground()
   endif
 endfunction
 nnoremap + :call ToggleBackground()<Esc>
+nnoremap - :%s///g<left><left><left>
+nnoremap _ :%s///g<left><left><left><c-r><c-w>
 
 " for vim's native netrw browser
 " let g:netrw_banner=0
