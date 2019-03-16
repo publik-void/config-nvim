@@ -3,6 +3,8 @@
 " get hostname to allow for platform-dependent customization
 let s:hostname = substitute(system('hostname'), '\n', '', '')
 
+:autocmd!
+
 " --------
 " Miscellaneous things
 " --------
@@ -77,8 +79,16 @@ set numberwidth=1
 " Folding
 set foldmethod=syntax
 set fillchars=vert:\|,fold:\ 
-"set foldnestmax=1
 "set foldminlines=2
+
+" Here's a function that opens all folds and then folds only the top level
+" folds. I'd like to open my files in this way. Unfortunately, I have not found
+" a way to make this work properly with autocmd.
+"function FoldTopLevel()
+"  :%foldo!
+"  :%foldc
+"endfunction
+
 nnoremap <Space> za
 
 " Search
