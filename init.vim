@@ -18,7 +18,7 @@ if s:hostname == "lasse-mbp-0"
 elseif s:hostname == "lasse-mba-0"
   let g:python_host_prog = '/usr/local/bin/python2'
 elseif s:hostname == "lasse-bsd-1"
-  let g:python_host_prog = '/usr/local/bin/python2.7'
+  let g:python_host_prog = 2
 elseif s:hostname == "lasse-ubuntu-0"
   let g:python_host_prog = '/usr/bin/python2.7'
 endif
@@ -39,7 +39,12 @@ Plug 'scrooloose/nerdcommenter'
 Plug 'ctrlpvim/ctrlp.vim'
 
 " YCM needs a working Python environment and Cmake to install itself
-Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer' }
+" Consequently, I enable YCM only on some hosts
+if s:hostname == "lasse-mbp-0" ||\
+  s:hostname == "lasse-mba-0" ||\
+  s:hostname == "lasse-ubuntu-0"
+  Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer' }
+end
 
 Plug 'dag/vim-fish'
 
