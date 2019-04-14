@@ -78,6 +78,7 @@ set statusline=%{getcwd()}%=%f%m%r%h%w%=%l,%c%V\ %P
 set cursorline
 set shell=fish\ --interactive\ --login
 set wildmode=longest:full
+set matchpairs=(:),{:},[:],<:>
 
 " Reduce key code delays
 set ttimeoutlen=20
