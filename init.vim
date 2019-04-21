@@ -344,7 +344,7 @@ endfunction
 autocmd colorscheme solarized call SolarizedOverrides()
 
 colorscheme solarized
-set background=dark
+set background=light
 
 function! ToggleBackground()
   " Solarized comes with a ToggleBackground plugin, but I figured I might as
