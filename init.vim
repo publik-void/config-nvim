@@ -38,11 +38,11 @@ Plug 'scrooloose/nerdcommenter'
 
 Plug 'ctrlpvim/ctrlp.vim'
 
-" YCM needs a working Python environment and Cmake to install itself
-" Consequently, I enable YCM only on some hosts
-if s:hostname == "lasse-mbp-0" || s:hostname == "lasse-mba-0"
-  Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer' }
-end
+"" YCM needs a working Python environment and Cmake to install itself
+"" Consequently, I enable YCM only on some hosts
+"if s:hostname == "lasse-mbp-0" || s:hostname == "lasse-mba-0"
+"  Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer' }
+"end
 
 Plug 'dag/vim-fish'
 
