@@ -64,6 +64,8 @@ Plug 'matcatc/vim-asciidoc-folding' " I'll need this as long as the official
 Plug 'https://github.com/arnoudbuzing/wolfram-vim.git' " This is only a syntax
 " file, not a 'real' plugin
 
+Plug 'guns/xterm-color-table.vim'
+
 call plug#end()
 
 """ Miscellaneous things
@@ -335,9 +337,18 @@ function! SolarizedOverrides()
   if &background == "light"
     hi! MatchParen ctermbg=7
     hi! WhiteSpace ctermbg=7
+
+    " For vim-indentguides
+    let g:indentguides_conceal_color = 'ctermfg=7 ctermbg=NONE'
+let g:indentguides_specialkey_color = 'ctermfg=7 ctermbg=NONE'
   else
     hi! MatchParen ctermbg=0
     hi! WhiteSpace ctermbg=0
+
+    " For vim-indentguides
+    let g:indentguides_conceal_color = 'ctermfg=0 ctermbg=NONE'
+let g:indentguides_specialkey_color = 'ctermfg=0 ctermbg=NONE'
+
   endif
 endfunction
 
@@ -434,12 +445,7 @@ let g:ranger_replace_netrw = 1
 
 """" vim-indentguides configuration
 
-" I might want to adjust this color to something a little more subtle
-" I might also want to find a second color for the bright solarized scheme
-let g:indentguides_conceal_color = 'ctermfg=10 ctermbg=NONE guifg=Grey27 guibg=NONE'
-let g:indentguides_specialkey_color = 'ctermfg=10 ctermbg=NONE guifg=Grey27 guibg=NONE'
-" This character is not ideal as it overlaps into the previous line
-let g:indentguides_spacechar = "⎸"
+let g:indentguides_spacechar = "▏"
 
 """" nvim-miniyank configuration
 
