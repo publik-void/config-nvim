@@ -14,9 +14,9 @@ let s:hostname = substitute(system('hostname'), '\n', '', '')
 " Set the location of the python binary.
 " 'provider.txt' says setting this makes startup faster
 if s:hostname == "lasse-mbp-0"
-  let g:python3_host_prog = 'python3'
+  let g:python3_host_prog = '/usr/local/bin/python3'
 elseif s:hostname == "lasse-mba-0"
-  let g:python3_host_prog = 'python3'
+  let g:python3_host_prog = '/usr/local/bin/python3'
 endif
 " Not sure if this is sensible, but i guess it doesn't hurt
 let g:loaded_python_provider = 1
