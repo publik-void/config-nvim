@@ -14,16 +14,13 @@ let s:hostname = substitute(system('hostname'), '\n', '', '')
 " Set the location of the python binary.
 " 'provider.txt' says setting this makes startup faster
 if s:hostname == "lasse-mbp-0"
-  let g:python_host_prog = '/usr/local/bin/python2'
+  let g:python3_host_prog = 'python3'
 elseif s:hostname == "lasse-mba-0"
-  let g:python_host_prog = '/usr/local/bin/python2'
-elseif s:hostname == "lasse-bsd-1"
-  let g:python_host_prog = 2
-elseif s:hostname == "lasse-ubuntu-0"
-  let g:python_host_prog = '/usr/bin/python2.7'
+  let g:python3_host_prog = 'python3'
 endif
 " Not sure if this is sensible, but i guess it doesn't hurt
-let g:loaded_python3_provider = 1
+let g:loaded_python_provider = 1
+"let g:loaded_python3_provider = 1
 let g:loaded_ruby_provider = 1
 let g:loaded_node_provider = 1
 
@@ -40,9 +37,9 @@ Plug 'ctrlpvim/ctrlp.vim'
 
 "" YCM needs a working Python environment and Cmake to install itself
 "" Consequently, I enable YCM only on some hosts
-"if s:hostname == "lasse-mbp-0" || s:hostname == "lasse-mba-0"
-"  Plug 'Valloric/YouCompleteMe', { 'do': './install.py --clang-completer' }
-"end
+if s:hostname == "lasse-mbp-0" || s:hostname == "lasse-mba-0"
+  Plug 'Valloric/YouCompleteMe', { 'do': 'python3 install.py --clang-completer' }
+end
 
 Plug 'dag/vim-fish'
 
@@ -411,13 +408,9 @@ endif
 """" YouCompleteMe configuration
 
 if s:hostname == "lasse-mbp-0"
-  let g:ycm_server_python_interpreter = '/usr/local/bin/python2'
+  let g:ycm_server_python_interpreter = 'python3'
 elseif s:hostname == "lasse-mba-0"
-  let g:ycm_server_python_interpreter = '/usr/local/bin/python2'
-elseif s:hostname == "lasse-bsd-1"
-  let g:ycm_server_python_interpreter = '/usr/local/bin/python2.7'
-elseif s:hostname == "lasse-ubuntu-0"
-  let g:ycm_server_python_interpreter = '/usr/bin/python2.7'
+  let g:ycm_server_python_interpreter = 'python3'
 endif
 let g:ycm_error_symbol = 'E>'
 let g:ycm_warning_symbol = 'W>'
