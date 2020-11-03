@@ -63,6 +63,8 @@ Plug 'https://github.com/arnoudbuzing/wolfram-vim.git' " This is only a syntax
 
 Plug 'guns/xterm-color-table.vim'
 
+Plug 'lervag/vimtex'
+
 call plug#end()
 
 """ Miscellaneous things
@@ -124,6 +126,9 @@ set clipboard+=unnamedplus
 " proper block pasting in neovim.
 " So all in all, it might be worth waiting a bit until some of that software has
 " matured a bit more.
+
+" TeX flavor for vim's native ft-tex-plugin, also used by vimtex
+let g:tex_flavor = 'latex'
 
 """ Mouse Behavior
 
@@ -464,6 +469,40 @@ autocmd FileType fish compiler fish
 autocmd FileType fish setlocal textwidth=80
 " Enable folding of block structures in fish.
 autocmd FileType fish setlocal foldmethod=expr
+
+"""" vimtex configuration
+
+" Don't try to use bibtex
+let g:vimtex_parser_bib_backend = 'vim'
+
+" Don't run document viewer automatically
+let g:vimtex_view_enabled = 0
+
+" Set up latexmk compiler to work with a dockerized latex image
+let g:vimtex_compiler_method = 'latexmk'
+let g:vimtex_compiler_latexmk = {
+  \ 'build_dir' : '',
+  \ 'callback' : 0,
+  \ 'continuous' : 0,
+  \ 'executable' : 'docker run --rm -i --user="$(id -u):$(id -g)" --net=none -v "$PWD":/data "blang/latex:ubuntu" mklatex',
+  \ 'hooks' : [],
+  \ 'options' : [
+  \   '-verbose',
+  \   '-file-line-error',
+  \   '-synctex=1',
+  \   '-interaction=nonstopmode',
+  \ ],
+  \}
+
+" Automatically compile on write
+" The following needs a local native install of latexmk. If I would be using
+" one, I could just use continuous compilation instead. But I use it in docker.
+"autocmd BufWritePost *.tex execute "VimtexCompileSS"
+" So instead, let's do compilation without using vimtex for now
+autocmd BufWritePost *.tex execute '!docker run --rm -i --user=(id -u):(id -g) --net=none -v $PWD:/data blang/latex:ubuntu pdflatex %'
+
+let g:vimtex_fold_enabled = 1
+let g:vimtex_format_enabled =1
 
 """ Things that need to be done late
 
