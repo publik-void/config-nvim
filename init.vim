@@ -501,6 +501,9 @@ let g:vimtex_compiler_latexmk = {
 " So instead, let's do compilation without using vimtex for now
 autocmd BufWritePost *.tex execute '!docker run --rm -i --user=(id -u):(id -g) --net=none -v $PWD:/data blang/latex:ubuntu pdflatex %'
 
+" This is a workaround which should be deleted when I don't need it anymore
+autocmd BufWritePost VL*.tex execute '!docker run --rm -i --user=(id -u):(id -g) --net=none -v $PWD/..:/data blang/latex:ubuntu pdflatex Skript.tex'
+
 let g:vimtex_fold_enabled = 1
 let g:vimtex_format_enabled =1
 
