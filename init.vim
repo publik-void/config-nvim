@@ -130,6 +130,15 @@ set clipboard+=unnamedplus
 " TeX flavor for vim's native ft-tex-plugin, also used by vimtex
 let g:tex_flavor = 'latex'
 
+" Don't conceal TeX code characters
+let g:tex_conceal = ''
+
+" I can't think of a case where trailing whitespace is needed in .tex files…
+" But this thing doesn't work as well as I'd like it to. Maybe I can work on it
+" another time if it feels important.
+"autocmd BufWritePre *.tex %s/\s\+$//e
+"autocmd BufWritePre *.tex execute "normal \<c-o>"
+
 """ Mouse Behavior
 
 set mouse=a
@@ -499,10 +508,11 @@ let g:vimtex_compiler_latexmk = {
 " one, I could just use continuous compilation instead. But I use it in docker.
 "autocmd BufWritePost *.tex execute "VimtexCompileSS"
 " So instead, let's do compilation without using vimtex for now
-autocmd BufWritePost *.tex execute '!docker run --rm -i --user=(id -u):(id -g) --net=none -v $PWD:/data blang/latex:ubuntu pdflatex %'
+"autocmd BufWritePost *.tex execute '!docker run --rm -i --user=(id -u):(id -g) --net=none -v $PWD:/data blang/latex:ubuntu pdflatex %'
 
-" This is a workaround which should be deleted when I don't need it anymore
-autocmd BufWritePost VL*.tex execute '!docker run --rm -i --user=(id -u):(id -g) --net=none -v $PWD/..:/data blang/latex:ubuntu pdflatex Skript.tex'
+" This is a workaround version of the above which I should delete when I don't
+" need it anymore
+"autocmd BufWritePost VL*.tex execute '!docker run --rm -i --user=(id -u):(id -g) --net=none -v $PWD/..:/data blang/latex:ubuntu pdflatex Skript.tex'
 
 let g:vimtex_fold_enabled = 1
 let g:vimtex_format_enabled =1
