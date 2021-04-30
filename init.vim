@@ -422,9 +422,9 @@ endif
 """" YouCompleteMe configuration
 
 if s:hostname == "lasse-mbp-0"
-  let g:ycm_server_python_interpreter = 'python3'
+  let g:ycm_server_python_interpreter = '/usr/local/bin/python3'
 elseif s:hostname == "lasse-mba-0"
-  let g:ycm_server_python_interpreter = 'python3'
+  let g:ycm_server_python_interpreter = '/usr/local/bin/python3'
 endif
 let g:ycm_error_symbol = 'E>'
 let g:ycm_warning_symbol = 'W>'
