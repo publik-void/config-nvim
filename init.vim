@@ -389,18 +389,18 @@ let g:clang_format_on_save = 0
 function! Formatonsave()
   if g:clang_format_on_save == 1
     let l:formatdiff = 1
-    pyf /usr/local/opt/llvm/share/clang/clang-format.py
+    py3f /usr/local/opt/llvm/share/clang/clang-format.py
   endif
 endfunction
 
 function! FormatFile()
   let l:lines="all"
-  pyf /usr/local/opt/llvm/share/clang/clang-format.py
+  py3f /usr/local/opt/llvm/share/clang/clang-format.py
 endfunction
 
 nnoremap <c-f> :call FormatFile()<cr>
-vnoremap <c-f> :pyf /usr/local/opt/llvm/share/clang/clang-format.py<cr>
-inoremap <c-f> <c-o>:silent pyf /usr/local/opt/llvm/share/clang/clang-format.py<cr>
+vnoremap <c-f> :py3f /usr/local/opt/llvm/share/clang/clang-format.py<cr>
+inoremap <c-f> <c-o>:silent py3f /usr/local/opt/llvm/share/clang/clang-format.py<cr>
 
 autocmd BufWritePre *.h,*.hpp,*.hxx,*.c,*.cpp,*.cxx,*.C,*.cc call Formatonsave()
 
