@@ -408,13 +408,10 @@ autocmd BufWritePre *.h,*.hpp,*.hxx,*.c,*.cpp,*.cxx,*.C,*.cc call Formatonsave()
 " located
 if s:hostname == "lasse-mbp-0"
   let g:clang_format_path = '/usr/local/opt/llvm/bin/clang-format'
-  let g:clang_format_on_save = 1
+  let g:clang_format_on_save = 0
 elseif s:hostname == "lasse-mba-0"
-  " …
-elseif s:hostname == "lasse-bsd-0"
-  " …
-elseif s:hostname == "lasse-bsd-1"
-  " …
+  let g:clang_format_path = '/usr/local/opt/llvm/bin/clang-format'
+  let g:clang_format_on_save = 0
 endif
 
 """ Configuration of plugins
