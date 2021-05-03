@@ -17,6 +17,8 @@ if s:hostname == "lasse-mbp-0"
   let g:python3_host_prog = '/usr/local/bin/python3'
 elseif s:hostname == "lasse-mba-0"
   let g:python3_host_prog = '/usr/local/bin/python3'
+elseif s:hostname == "lasse-alpine-env-0"
+  let g:python3_host_prog = '/usr/bin/python3'
 endif
 " Not sure if this is sensible, but i guess it doesn't hurt
 let g:loaded_python_provider = 1
@@ -37,7 +39,7 @@ Plug 'ctrlpvim/ctrlp.vim'
 
 "" YCM needs a working Python environment and Cmake to install itself
 "" Consequently, I enable YCM only on some hosts
-if s:hostname == "lasse-mbp-0" || s:hostname == "lasse-mba-0"
+if s:hostname == "lasse-mbp-0" || s:hostname == "lasse-mba-0" || s:hostname == "lasse-alpine-env-0"
   Plug 'Valloric/YouCompleteMe', { 'do': 'python3 install.py --clang-completer' }
 end
 
@@ -422,6 +424,8 @@ if s:hostname == "lasse-mbp-0"
   let g:ycm_server_python_interpreter = '/usr/local/bin/python3'
 elseif s:hostname == "lasse-mba-0"
   let g:ycm_server_python_interpreter = '/usr/local/bin/python3'
+elseif s:hostname == "lasse-alpine-env-0"
+  let g:ycm_server_python_interpreter = '/usr/bin/python3'
 endif
 let g:ycm_error_symbol = 'E>'
 let g:ycm_warning_symbol = 'W>'
