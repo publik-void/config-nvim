@@ -391,13 +391,21 @@ let g:clang_format_on_save = 0
 function! Formatonsave()
   if g:clang_format_on_save == 1
     let l:formatdiff = 1
-    py3f /usr/local/opt/llvm/share/clang/clang-format.py
+    if s:hostname == "lasse-mbp-0" || s:hostname == "lasse-mba-0"
+      py3f /usr/local/opt/llvm/share/clang/clang-format.py
+    elseif s:hostname == "lasse-lubuntu-0"
+      py3f /usr/share/clang/clang-format-10/clang-format.py
+    endif
   endif
 endfunction
 
 function! FormatFile()
   let l:lines="all"
-  py3f /usr/local/opt/llvm/share/clang/clang-format.py
+    if s:hostname == "lasse-mbp-0" || s:hostname == "lasse-mba-0"
+      py3f /usr/local/opt/llvm/share/clang/clang-format.py
+    elseif s:hostname == "lasse-lubuntu-0"
+      py3f /usr/share/clang/clang-format-10/clang-format.py
+    endif
 endfunction
 
 nnoremap <c-f> :call FormatFile()<cr>
