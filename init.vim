@@ -86,6 +86,7 @@ set cursorline
 set shell=fish\ --interactive\ --login
 set wildmode=longest:full
 set matchpairs=(:),{:},[:],<:>
+set nocompatible " is always set in neovim, but doesn't hurt
 
 " Reduce key code delays
 set ttimeoutlen=20
@@ -412,9 +413,9 @@ function! FormatFile()
     endif
 endfunction
 
-nnoremap <c-f> :call FormatFile()<cr>
-vnoremap <c-f> :py3f /usr/local/opt/llvm/share/clang/clang-format.py<cr>
-inoremap <c-f> <c-o>:silent py3f /usr/local/opt/llvm/share/clang/clang-format.py<cr>
+autocmd FileType c,cpp nnoremap <buffer> <c-f> :call FormatFile()<cr>
+autocmd FileType c,cpp vnoremap <buffer> <c-f> :py3f /usr/local/opt/llvm/share/clang/clang-format.py<cr>
+autocmd FileType c,cpp inoremap <buffer> <c-f> <c-o>:silent py3f /usr/local/opt/llvm/share/clang/clang-format.py<cr>
 
 autocmd BufWritePre *.h,*.hpp,*.hxx,*.c,*.cpp,*.cxx,*.C,*.cc call Formatonsave()
 
@@ -532,10 +533,20 @@ let g:vimtex_format_enabled =1
 
 """ JuliaFormatter configuration
 
+" At the moment, JuliaFormatter requires 'filetype off', which I don't like. So
+" this plugin isn't really useful I guess…
+
+"filetype off
+"nnoremap <c-f> :JuliaFormatterFormat<cr>
+"vnoremap <c-f> :'<,'>JuliaFormatterFormat<cr>
+
 let g:JuliaFormatter_options = {
         \ 'indent'                    : 2,
         \ 'margin'                    : 80,
         \ 'always_for_in'             : v:true,
         \ 'whitespace_typedefs'       : v:true,
         \ }
+
+autocmd FileType julia nnoremap <buffer> <c-f> :JuliaFormatterFormat<cr>
+autocmd FileType julia vnoremap <buffer> <c-f> :'<,'>JuliaFormatterFormat<cr>
 
