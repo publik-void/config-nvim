@@ -67,6 +67,10 @@ Plug 'guns/xterm-color-table.vim'
 
 Plug 'lervag/vimtex'
 
+Plug 'JuliaEditorSupport/julia-vim'
+
+Plug 'kdheepak/JuliaFormatter.vim'
+
 call plug#end()
 
 """ Miscellaneous things
@@ -526,10 +530,12 @@ let g:vimtex_compiler_latexmk = {
 let g:vimtex_fold_enabled = 1
 let g:vimtex_format_enabled =1
 
-""" Things that need to be done late
+""" JuliaFormatter configuration
 
-" Enable section folding in this file
-
-" vim:fdm=expr:fdl=0
-" vim:fde=getline(v\:lnum)=~'^""'?'>'.(matchend(getline(v\:lnum),'""*')-2)\:'='
+let g:JuliaFormatter_options = {
+        \ 'indent'                    : 2,
+        \ 'margin'                    : 80,
+        \ 'always_for_in'             : v:true,
+        \ 'whitespace_typedefs'       : v:true,
+        \ }
 
