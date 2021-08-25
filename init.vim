@@ -1,6 +1,5 @@
 " init.vim or '.vimrc' file thrown together by me (lasse)
 
-" This line is just for testing the new github authentication. delete it! A
 """ Things that need to be done early
 
 " Get hostname to allow for platform-dependent customization
