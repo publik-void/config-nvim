@@ -139,6 +139,7 @@ let g:tex_flavor = 'latex'
 
 " Don't conceal TeX code characters
 let g:tex_conceal = ''
+autocmd FileType plaintex,context,tex,bib set conceallevel=0
 
 " I can't think of a case where trailing whitespace is needed in .tex files…
 " But this thing doesn't work as well as I'd like it to. Maybe I can work on it
@@ -501,13 +502,13 @@ let g:vimtex_parser_bib_backend = 'vim'
 " Don't run document viewer automatically
 let g:vimtex_view_enabled = 0
 
-" Set up latexmk compiler to work with a dockerized latex image
+" Set up latexmk compiler
 let g:vimtex_compiler_method = 'latexmk'
 let g:vimtex_compiler_latexmk = {
   \ 'build_dir' : '',
   \ 'callback' : 0,
   \ 'continuous' : 0,
-  \ 'executable' : 'docker run --rm -i --user="$(id -u):$(id -g)" --net=none -v "$PWD":/data "blang/latex:ubuntu" mklatex',
+  \ 'executable' : 'latexmk',
   \ 'hooks' : [],
   \ 'options' : [
   \   '-verbose',
@@ -518,18 +519,14 @@ let g:vimtex_compiler_latexmk = {
   \}
 
 " Automatically compile on write
-" The following needs a local native install of latexmk. If I would be using
-" one, I could just use continuous compilation instead. But I use it in docker.
+" Continuous compilation may be possible with a daemon container…
 "autocmd BufWritePost *.tex execute "VimtexCompileSS"
-" So instead, let's do compilation without using vimtex for now
-"autocmd BufWritePost *.tex execute '!docker run --rm -i --user=(id -u):(id -g) --net=none -v $PWD:/data blang/latex:ubuntu pdflatex %'
-
-" This is a workaround version of the above which I should delete when I don't
-" need it anymore
-"autocmd BufWritePost VL*.tex execute '!docker run --rm -i --user=(id -u):(id -g) --net=none -v $PWD/..:/data blang/latex:ubuntu pdflatex Skript.tex'
 
 let g:vimtex_fold_enabled = 1
-let g:vimtex_format_enabled =1
+let g:vimtex_format_enabled = 1
+
+" Don't use conceal features
+let g:vimtex_syntax_conceal_default = 0
 
 """ JuliaFormatter configuration
 
