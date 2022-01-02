@@ -39,8 +39,13 @@ Plug 'ctrlpvim/ctrlp.vim'
 
 "" YCM needs a working Python environment and Cmake to install itself
 "" Consequently, I enable YCM only on some hosts
-if s:hostname == "lasse-mbp-0" || s:hostname == "lasse-mba-0" || s:hostname == "lasse-alpine-env-0" || s:hostname == "lasse-lubuntu-0"
+if s:hostname == "lasse-mbp-0" || s:hostname == "lasse-mba-0" || s:hostname == "lasse-lubuntu-0"
   Plug 'Valloric/YouCompleteMe', { 'do': 'python3 install.py --clang-completer' }
+end
+
+"" On alpine, use system libclang
+if s:hostname == "lasse-alpine-env-0"
+  Plug 'Valloric/YouCompleteMe', { 'do': 'python3 install.py --clang-completer --system-libclang' }
 end
 
 Plug 'dag/vim-fish'
