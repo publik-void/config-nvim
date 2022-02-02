@@ -50,9 +50,6 @@ end
 
 Plug 'dag/vim-fish'
 
-Plug 'bfredl/nvim-miniyank' " I'll need miniyank until block pasting on macOS
-" with clipboard=unnamed is fixed in Neovim
-
 Plug 'francoiscabrol/ranger.vim'
 Plug 'rbgrouleff/bclose.vim' " Dependency of ranger.vim
 
@@ -473,11 +470,6 @@ let g:ranger_replace_netrw = 1
 """" vim-indentguides configuration
 
 let g:indentguides_spacechar = "▏"
-
-"""" nvim-miniyank configuration
-
-map p <Plug>(miniyank-autoput)
-map P <Plug>(miniyank-autoPut)
 
 """" vim-asciidoc-folding configuration
 
