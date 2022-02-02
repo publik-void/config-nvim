@@ -38,6 +38,8 @@ Plug 'scrooloose/nerdcommenter'
 
 Plug 'ctrlpvim/ctrlp.vim'
 
+Plug 'ojroques/vim-oscyank'
+
 "" YCM needs a working Python environment and Cmake to install itself
 "" Consequently, I enable YCM only on some hosts
 if s:hostname == "lasse-mbp-0" || s:hostname == "lasse-mba-0" || s:hostname == "lasse-lubuntu-0"
@@ -127,15 +129,6 @@ vnoremap <c-k> :m '<-2<cr>gv=gv
 let g:netrw_liststyle=3
 
 set clipboard+=unnamedplus
-" I should look into using the OSC 52 escape sequence to allow local clipboard
-" access over ssh. However, I have a hard time getting this to work properly.
-" right now, any vim plugins or functions are not quite working for me and the
-" release version of mosh does not even support that escape sequence (yet!).
-" Also, tmux needs a workaround for compatibility to mosh. And at the time of
-" writing, I still depend on the plugin bfredl/nvim-miniyank to be able to do
-" proper block pasting in neovim.
-" So all in all, it might be worth waiting a bit until some of that software has
-" matured a bit more.
 
 " TeX flavor for vim's native ft-tex-plugin, also used by vimtex
 let g:tex_flavor = 'latex'
@@ -515,6 +508,14 @@ let g:vimtex_compiler_latexmk = {
   \   '-interaction=nonstopmode',
   \ ],
   \}
+
+"""" oscyank configuration
+
+" Automatically copy the unnamed register to clipboard through ANSI OSC52 on
+" every yank operation (not sure if this copies twice if another clipboard
+" provider is present, but since OSC52 also isn't guaranteed to work everywhere,
+" I guess better risk doing it twice than not doing it at all).
+autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname is '' | execute 'OSCYankReg "' | endif
 
 " Automatically compile on write
 " Continuous compilation may be possible with a daemon container…
