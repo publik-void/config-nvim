@@ -320,6 +320,9 @@ set fillchars=vert:\|,fold:\
 
 nnoremap <space> za
 
+""" Concealing
+set conceallevel=0
+
 """ Search, replace
 
 set ignorecase
@@ -355,14 +358,14 @@ function! SolarizedOverrides()
 
     " For vim-indentguides
     let g:indentguides_conceal_color = 'ctermfg=7 ctermbg=NONE'
-let g:indentguides_specialkey_color = 'ctermfg=7 ctermbg=NONE'
+    let g:indentguides_specialkey_color = 'ctermfg=7 ctermbg=NONE'
   else
     hi! MatchParen ctermbg=0
     hi! WhiteSpace ctermbg=0
 
     " For vim-indentguides
     let g:indentguides_conceal_color = 'ctermfg=0 ctermbg=NONE'
-let g:indentguides_specialkey_color = 'ctermfg=0 ctermbg=NONE'
+    let g:indentguides_specialkey_color = 'ctermfg=0 ctermbg=NONE'
 
   endif
 endfunction
@@ -464,6 +467,7 @@ let g:ranger_replace_netrw = 1
 """" vim-indentguides configuration
 
 let g:indentguides_spacechar = "▏"
+let g:indentguides_tabchar = "▏"
 
 """" vim-asciidoc-folding configuration
 
