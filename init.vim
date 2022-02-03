@@ -341,9 +341,8 @@ set tabstop=2
 
 " Show whitespace characters
 " The following is a line with a tab, trailing whitespace and a nbsp.
-" OK… Here is the nbsp:  And here is some whitespace:    
-" Well, the tab is missing for now due to auto-indentation. Gotta fix that at
-" some point…
+" 	This was the tab, here is the nbsp:  And here is some whitespace:    
+" Seems like the `+-` for tabs gets overridden by `vim-indentguides`…
 set listchars=tab:+-,nbsp:·,trail:·
 set list
 
