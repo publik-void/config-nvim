@@ -40,16 +40,18 @@ Plug 'ctrlpvim/ctrlp.vim'
 
 Plug 'ojroques/vim-oscyank'
 
-"" YCM needs a working Python environment and Cmake to install itself
-"" Consequently, I enable YCM only on some hosts
+" YCM needs a working Python environment and Cmake to install itself.
+" Consequently, I enable YCM only on some hosts.
 if s:hostname == "lasse-mbp-0" || s:hostname == "lasse-mba-0" || s:hostname == "lasse-lubuntu-0"
   Plug 'Valloric/YouCompleteMe', { 'do': 'python3 install.py --clang-completer' }
 end
 
-"" On alpine, use system libclang
+" On alpine, use system libclang.
 if s:hostname == "lasse-alpine-env-0"
   Plug 'Valloric/YouCompleteMe', { 'do': 'python3 install.py --clang-completer --system-libclang' }
 end
+
+Plug 'dense-analysis/ale'
 
 Plug 'dag/vim-fish'
 
@@ -73,8 +75,6 @@ Plug 'guns/xterm-color-table.vim'
 Plug 'lervag/vimtex'
 
 Plug 'JuliaEditorSupport/julia-vim'
-
-Plug 'kdheepak/JuliaFormatter.vim'
 
 call plug#end()
 
@@ -106,14 +106,15 @@ nmap <bs> <c-^>
 " Show 81st column
 set colorcolumn=81
 " I don't set an explicit highlight color, since the default light and dark
-" solarized colors work nicely
+" solarized colors work nicely.
 
 set textwidth=80
 " I'll try to use this as a global setting, maybe that's a stupid idea.
 " I can still add filetype-dependent overrides though.
 " For reformatting, use gq or gw. :help gq and :help gw might help 😉
 
-" Moving lines up and down
+" Moving lines up and down – can of course be done with `dd` and `p` as well,
+" but does not auto-indent that way.
 nnoremap <c-j> :m .+1<cr>==
 nnoremap <c-k> :m .-2<cr>==
 inoremap <c-j> <esc>:m .+1<cr>==gi
@@ -448,6 +449,32 @@ let g:ycm_key_list_previous_completion = ['<s-tab>']
 let g:ycm_key_list_stop_completion = ['<c-y>', '<up>', '<down>']
 noremap <c-g> :YcmCompleter GoTo<cr>
 
+"""" ALE configuration
+" ALE runs all available linters by default. I would like to choose my linters
+" by myself and enable them one by one here. Hence the following setting. This
+" also mitigates interference with YouCompleteMe.
+let g:ale_linters_explicit = 1
+
+" ALE linters to enable, by language
+" Note: Doing `:ALEInfo` shows supported and enabled linters for the buffer.
+" Note: For the `julia` `languageserver` linter to work, make sure the following
+" packages are installed: `LanguageServer`, `SymbolServer`, and `StaticLint`.
+" For ALE to start the linter, the respective Julia file needs to belong to a
+" Julia Project with a `Project.toml` file.
+" Also see the Julia- and LanguageServer.jl-specific source files of ALE if
+" things should change in the future.
+let g:ale_linters = {
+  \ 'fish': ['fish'],
+  \ 'sh': ['shell'],
+  \ 'cpp': [],
+  \ 'python': ['flake8'],
+  \ 'julia': ['languageserver']}
+
+let g:ale_sign_error = 'E>'
+let g:ale_sign_warning = 'W>'
+
+let g:ale_echo_msg_format = '%s [%linter%% code%]'
+
 """" NERDCommenter configuration
 
 map <c-h> <leader>cu
@@ -529,23 +556,4 @@ let g:vimtex_format_enabled = 1
 
 " Don't use conceal features
 let g:vimtex_syntax_conceal_default = 0
-
-""" JuliaFormatter configuration
-
-" At the moment, JuliaFormatter requires 'filetype off', which I don't like. So
-" this plugin isn't really useful I guess…
-
-"filetype off
-"nnoremap <c-f> :JuliaFormatterFormat<cr>
-"vnoremap <c-f> :'<,'>JuliaFormatterFormat<cr>
-
-let g:JuliaFormatter_options = {
-        \ 'indent'                    : 2,
-        \ 'margin'                    : 80,
-        \ 'always_for_in'             : v:true,
-        \ 'whitespace_typedefs'       : v:true,
-        \ }
-
-autocmd FileType julia nnoremap <buffer> <c-f> :JuliaFormatterFormat<cr>
-autocmd FileType julia vnoremap <buffer> <c-f> :'<,'>JuliaFormatterFormat<cr>
 
