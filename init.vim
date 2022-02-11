@@ -2,6 +2,10 @@
 
 """ Things that need to be done early
 
+" I would love to set this to `fish`, but POSIX compliance is needed for some
+" things to work correctly.
+set shell=sh
+
 " Get hostname to allow for platform-dependent customization
 let s:hostname = substitute(system('hostname'), '\n', '', '')
 
@@ -10,9 +14,9 @@ let s:hostname = substitute(system('hostname'), '\n', '', '')
 
 """ Neovim providers
 
-" Python needs the neovim package installed.
-" Set the location of the python binary.
-" 'provider.txt' says setting this makes startup faster
+" Python needs the `pynvim` package installed.
+" Set the location of the Python binary.
+" `provider.txt` says setting this makes startup faster
 if s:hostname == "lasse-mbp-0"
   let g:python3_host_prog = '/usr/local/bin/python3'
 elseif s:hostname == "lasse-mba-0"
@@ -29,12 +33,12 @@ let g:loaded_perl_provider = 1
 
 """ vim-plug
 
-" vim-plug needs to be installed beforehand, I have not automated that here.
-" I chose the directory name 'plugged' as suggested by the vim-plug readme.
+" `vim-plug` needs to be installed beforehand, I have not automated that here.
+" I chose the directory name `plugged` as suggested by the `vim-plug` readme.
 
 call plug#begin('~/.config/nvim/plugged')
 
-Plug 'scrooloose/nerdcommenter'
+Plug 'preservim/nerdcommenter'
 
 Plug 'ctrlpvim/ctrlp.vim'
 
@@ -56,11 +60,12 @@ Plug 'dense-analysis/ale'
 Plug 'dag/vim-fish'
 
 Plug 'francoiscabrol/ranger.vim'
-Plug 'rbgrouleff/bclose.vim' " Dependency of ranger.vim
+Plug 'rbgrouleff/bclose.vim' " Dependency of `ranger.vim`
 
 Plug 'thaerkh/vim-indentguides'
 
-" At some point I should probably consider that surround plugin everyone uses 😄
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-repeat' " Makes `.` work for `vim-surround`.
 
 Plug 'junegunn/goyo.vim'
 
@@ -82,13 +87,10 @@ call plug#end()
 
 set whichwrap+=<,>,h,l,[,],~
 set path+=**
-"set so=7
-"set cmdheight=2
 set lazyredraw
 set laststatus=2
 set statusline=%{getcwd()}%=%f%m%r%h%w%=%l,%c%V\ %P
 set cursorline
-set shell=fish\ --interactive\ --login
 set wildmode=longest:full
 set matchpairs=(:),{:},[:],<:>
 set nocompatible " is always set in neovim, but doesn't hurt
@@ -104,23 +106,34 @@ set numberwidth=1
 nmap <bs> <c-^>
 
 " Show 81st column
-set colorcolumn=81
 " I don't set an explicit highlight color, since the default light and dark
 " solarized colors work nicely.
+set colorcolumn=81
 
-set textwidth=80
 " I'll try to use this as a global setting, maybe that's a stupid idea.
 " I can still add filetype-dependent overrides though.
-" For reformatting, use gq or gw. :help gq and :help gw might help 😉
+" For reformatting, use gq or gw. :help gq and :help gw might help.
+set textwidth=80
 
 " Moving lines up and down – can of course be done with `dd` and `p` as well,
-" but does not auto-indent that way.
-nnoremap <c-j> :m .+1<cr>==
-nnoremap <c-k> :m .-2<cr>==
-inoremap <c-j> <esc>:m .+1<cr>==gi
-inoremap <c-k> <esc>:m .-2<cr>==gi
-vnoremap <c-j> :m '>+1<cr>gv=gv
-vnoremap <c-k> :m '<-2<cr>gv=gv
+" but does not auto-indent that way, with my configuration.
+nnoremap <c-j> :move .+1<cr>==
+nnoremap <c-k> :move .-2<cr>==
+inoremap <c-j> <esc>:move .+1<cr>==gi
+inoremap <c-k> <esc>:move .-2<cr>==gi
+vnoremap <c-j> :move '>+1<cr>gv=gv
+vnoremap <c-k> :move '<-2<cr>gv=gv
+
+" Moving lines left and right, i.e. indent or unindent
+nnoremap <c-h> a<c-d><esc>
+nnoremap <c-l> a<c-t><esc>
+inoremap <c-h> <c-d>
+inoremap <c-l> <c-t>
+" Note: `gv` keeps the lines selected. However, it does not select the exact
+" same content when done like this. I guess that's okay for now.
+vnoremap <c-h> <lt>gv
+" Note: I'm using `<char-62>` to target the key `>` because there is no `<gt>`.
+vnoremap <c-l> <char-62>gv
 
 " Enable spell checking
 "set spell spelllang=en_us
@@ -137,12 +150,6 @@ let g:tex_flavor = 'latex'
 " Don't conceal TeX code characters
 let g:tex_conceal = ''
 autocmd FileType plaintex,context,tex,bib set conceallevel=0
-
-" I can't think of a case where trailing whitespace is needed in .tex files…
-" But this thing doesn't work as well as I'd like it to. Maybe I can work on it
-" another time if it feels important.
-"autocmd BufWritePre *.tex %s/\s\+$//e
-"autocmd BufWritePre *.tex execute "normal \<c-o>"
 
 """ Mouse Behavior
 
@@ -390,8 +397,10 @@ nnoremap + :call ToggleBackground()<esc>
 
 """ Clang-format integration
 
-" Defined by myself (lasse)
-let g:clang_format_on_save = 0
+" Note: ALE support `clang-format` as a fixer, so perhaps I should use that
+" instead. This whole section is a little hacky and platform-dependent anyway.
+
+let g:clang_format_on_save = 0 " Defined by myself
 
 function! Formatonsave()
   if g:clang_format_on_save == 1
@@ -419,14 +428,12 @@ autocmd FileType c,cpp inoremap <buffer> <c-f> <c-o>:silent py3f /usr/local/opt/
 
 autocmd BufWritePre *.h,*.hpp,*.hxx,*.c,*.cpp,*.cxx,*.C,*.cc call Formatonsave()
 
-" g:clang_format_path tells clang-format.py where the clang-format binary is
-" located
+" `g:clang_format_path` tells `clang-format.py` where the clang-format binary is
+" located.
 if s:hostname == "lasse-mbp-0"
   let g:clang_format_path = '/usr/local/opt/llvm/bin/clang-format'
-  let g:clang_format_on_save = 0
 elseif s:hostname == "lasse-mba-0"
   let g:clang_format_path = '/usr/local/opt/llvm/bin/clang-format'
-  let g:clang_format_on_save = 0
 endif
 
 """ Configuration of plugins
@@ -445,9 +452,8 @@ let g:ycm_warning_symbol = 'W>'
 let g:ycm_complete_in_comments = 1
 let g:ycm_key_list_select_completion = ['<tab>']
 let g:ycm_key_list_previous_completion = ['<s-tab>']
-"let g:ycm_key_list_stop_completion = ['<c-y>', '<esc>', '<up>', '<down>']
-let g:ycm_key_list_stop_completion = ['<c-y>', '<up>', '<down>']
-noremap <c-g> :YcmCompleter GoTo<cr>
+let g:ycm_key_list_stop_completion = ['<c-y>', '<c-e>', '<up>', '<down>']
+noremap ? :YcmCompleter GoTo<cr> " I don't use `?` for backward search anyway.
 
 """" ALE configuration
 " ALE runs all available linters by default. I would like to choose my linters
@@ -477,13 +483,14 @@ let g:ale_echo_msg_format = '%s [%linter%% code%]'
 
 """" NERDCommenter configuration
 
-map <c-h> <leader>cu
-nmap <c-h> <leader>cu:set whichwrap-=h<cr>2h:set whichwrap+=h<cr>
-imap <c-h> <c-o><leader>cu<c-o>:set whichwrap-=[<cr><left><left><c-o>:set whichwrap+=[<cr>
-map <c-l> <leader>cl
-nmap <c-l> <leader>cl2l
-imap <c-l> <c-o><leader>cl<right><right>
-let NERDCommentWholeLinesInVMode=1
+let g:NERDCommentWholeLinesInVMode = 1
+let g:NERDCommentEmptyLines = 1
+let g:NERDCreateDefaultMappings = 0
+
+" Note: I'm mapping the arrow keys directly here. Above, they were mapped to
+" `<nop>` anyway.
+map <left> <plug>NERDCommenterUncomment
+map <right> <plug>NERDCommenterAlignBoth
 
 """" vim-ranger configuration
 
@@ -539,14 +546,6 @@ let g:vimtex_compiler_latexmk = {
   \ ],
   \}
 
-"""" oscyank configuration
-
-" Automatically copy the unnamed register to clipboard through ANSI OSC52 on
-" every yank operation (not sure if this copies twice if another clipboard
-" provider is present, but since OSC52 also isn't guaranteed to work everywhere,
-" I guess better risk doing it twice than not doing it at all).
-autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname is '' | execute 'OSCYankReg "' | endif
-
 " Automatically compile on write
 " Continuous compilation may be possible with a daemon container…
 "autocmd BufWritePost *.tex execute "VimtexCompileSS"
@@ -556,4 +555,12 @@ let g:vimtex_format_enabled = 1
 
 " Don't use conceal features
 let g:vimtex_syntax_conceal_default = 0
+
+"""" oscyank configuration
+
+" Automatically copy the unnamed register to clipboard through ANSI OSC52 on
+" every yank operation (not sure if this copies twice if another clipboard
+" provider is present, but since OSC52 also isn't guaranteed to work everywhere,
+" I guess better risk doing it twice than not doing it at all).
+autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname is '' | execute 'OSCYankReg "' | endif
 
