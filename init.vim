@@ -1,4 +1,4 @@
-" init.vim or '.vimrc' file thrown together by me (lasse)
+" `init.vim` or '`.vimrc`' file thrown together by me.
 
 " TODO: Think about porting this to Lua? Or should I try to remain somewhat
 " close to regular Vim?
@@ -122,15 +122,108 @@ Plug 'JuliaEditorSupport/julia-vim'
 
 call plug#end()
 
+""" Colors
+
+" Note: Doing this early is sensible because colorschemes like this one tend to
+" clear all custom `highlight`s.
+" TODO: Think about re-doing this in a better way, perhaps leveraging Neovim's
+" new Treesitter functionality, and generally less hackiness and better support
+" for terminal colors as well as true color?
+
+" Use solarized color scheme 🙂
+
+"let g:solarized_visibility = "low"
+
+function! SolarizedOverrides()
+  if &background == "light"
+    hi! MatchParen ctermbg=7
+    hi! WhiteSpace ctermbg=7
+
+    " For vim-indentguides
+    let g:indentguides_conceal_color = 'ctermfg=7 ctermbg=NONE'
+    let g:indentguides_specialkey_color = 'ctermfg=7 ctermbg=NONE'
+  else
+    hi! MatchParen ctermbg=0
+    hi! WhiteSpace ctermbg=0
+
+    " For vim-indentguides
+    let g:indentguides_conceal_color = 'ctermfg=0 ctermbg=NONE'
+    let g:indentguides_specialkey_color = 'ctermfg=0 ctermbg=NONE'
+
+  endif
+endfunction
+
+autocmd colorscheme solarized call SolarizedOverrides()
+
+colorscheme solarized
+set background=light
+
+" Solarized comes with a ToggleBackground plugin, but I figured I might as well
+" just write a function. Don't know if the plugin does more than just toggling
+" the background like this function, though.
+" Note: This function unfortunetaly clears custom `highlight`s.
+function! ToggleBackground()
+  if &background == "light"
+    set background=dark
+  else
+    set background=light
+  endif
+endfunction
+
+nnoremap + :call ToggleBackground()<esc>
+
 """ Miscellaneous things
 
 set whichwrap+=<,>,h,l,[,],~
 set path+=**
 set lazyredraw
-set laststatus=2
-set statusline=%{getcwd()}%=%f%m%r%h%w%=%l,%c%V\ %P
 set cursorline
 set wildmode=longest:full
+set noshowmode
+
+""" Status line
+" I chose to not use any plugins and try to do what I want by myself.
+
+" Always put a status line on every window.
+set laststatus=2
+
+" Custom `highlight`s for status line coloring. The `NC` versions are for
+" out-of-focus windows.
+highlight! MyStatuslineStrong ctermfg=15 ctermbg=10
+highlight! MyStatuslineStrongNC ctermfg=15 ctermbg=11
+highlight! MyStatuslineWeak ctermfg=14 ctermbg=10
+highlight! MyStatuslineWeakNC ctermfg=14 ctermbg=11
+
+" Function to get the correct highlight – in principle extensible to match other
+" color schemes and so on…
+function MyStatuslineHighlightLookup(is_focused, type) abort
+  let l:my_statusline_highlight_lookup = {
+    \ 'strong': 'MyStatusLineStrong',
+    \ 'weak': 'MyStatusLineWeak'}
+  let l:default = 'StatusLine'
+  let l:highlight = get(l:my_statusline_highlight_lookup, a:type, l:default)
+  let l:highlight .= a:is_focused ? '' : 'NC'
+  return '%#' . l:highlight . '#'
+endfunction
+
+" Creating the status line from a function gives flexibility, e.g. higlighting
+" based on focus is easier/more functional.
+function MyStatusline() abort
+  let l:is_focused = g:statusline_winid == win_getid(winnr())
+
+  let l:statusline = '' " Initialize
+  let l:statusline .= '%<' " Truncate from the beginning
+  let l:statusline .= MyStatuslineHighlightLookup(l:is_focused, 'weak')
+  let l:statusline .= '%{pathshorten(getcwd())}/%=' " Current working directory
+  let l:statusline .= MyStatuslineHighlightLookup(l:is_focused, 'strong')
+  let l:statusline .= '%f%=' " Current file
+  let l:statusline .= ' [%{mode()}]%m%r%h%w%y ' " Mode, flags, and filetype
+  let l:statusline .= '%l:%c%V %P' " Cursor position
+
+  return statusline
+endfunction
+
+set statusline=%!MyStatusline()
 
 " Bracket pairs matched by `%`
 set matchpairs=(:),{:},[:],<:>
@@ -401,47 +494,6 @@ set tabstop=2
 " Seems like the `+-` for tabs gets overridden by `vim-indentguides`…
 set listchars=tab:+-,nbsp:·,trail:·
 set list
-
-""" Colors
-
-" Use solarized color scheme 🙂
-"let g:solarized_visibility = "low"
-function! SolarizedOverrides()
-  if &background == "light"
-    hi! MatchParen ctermbg=7
-    hi! WhiteSpace ctermbg=7
-
-    " For vim-indentguides
-    let g:indentguides_conceal_color = 'ctermfg=7 ctermbg=NONE'
-    let g:indentguides_specialkey_color = 'ctermfg=7 ctermbg=NONE'
-  else
-    hi! MatchParen ctermbg=0
-    hi! WhiteSpace ctermbg=0
-
-    " For vim-indentguides
-    let g:indentguides_conceal_color = 'ctermfg=0 ctermbg=NONE'
-    let g:indentguides_specialkey_color = 'ctermfg=0 ctermbg=NONE'
-
-  endif
-endfunction
-
-autocmd colorscheme solarized call SolarizedOverrides()
-
-colorscheme solarized
-set background=light
-
-function! ToggleBackground()
-  " Solarized comes with a ToggleBackground plugin, but I figured I might as
-  " well just write a function. Don't know if the plugin does more than just
-  " toggling the background like this function, though.
-  if &background == "light"
-    set background=dark
-  else
-    set background=light
-  endif
-endfunction
-
-nnoremap + :call ToggleBackground()<esc>
 
 """ Clang-format integration
 
