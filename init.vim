@@ -209,7 +209,11 @@ endfunction
 " Creating the status line from a function gives flexibility, e.g. higlighting
 " based on focus is easier/more functional.
 function MyStatusline() abort
-  let l:is_focused = g:statusline_winid == win_getid(winnr())
+  if exists("g:statusline_winid") " Not present on older `vim`/`neovim` versions
+    let l:is_focused = g:statusline_winid == win_getid(winnr())
+  else
+    let l:is_focused = v:true
+  endif
 
   let l:statusline = '' " Initialize
   let l:statusline .= '%<' " Truncate from the beginning
