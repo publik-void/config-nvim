@@ -14,9 +14,9 @@ let s:hostname = substitute(system('hostname'), '\n', '', '')
 
 """ Neovim providers
 
-" Python needs the `pynvim` package installed.
-" Set the location of the Python binary.
-" `provider.txt` says setting this makes startup faster
+" Set the location of the Python 3 binary. `provider.txt` says setting this
+" makes startup faster.
+" Note: Python 3 needs the `pynvim` package installed.
 if s:hostname == "lasse-mbp-0"
   let g:python3_host_prog = '/usr/local/bin/python3'
 elseif s:hostname == "lasse-mba-0"
@@ -24,7 +24,8 @@ elseif s:hostname == "lasse-mba-0"
 elseif s:hostname == "lasse-alpine-env-0"
   let g:python3_host_prog = '/usr/bin/python3'
 endif
-" Not sure if this is sensible, but i guess it doesn't hurt
+
+" Explicitly disable some (unneeded?) providers. Not sure if this is sensible.
 let g:loaded_python_provider = 1
 "let g:loaded_python3_provider = 1
 let g:loaded_ruby_provider = 1
@@ -38,11 +39,36 @@ let g:loaded_perl_provider = 1
 
 call plug#begin('~/.config/nvim/plugged')
 
-Plug 'preservim/nerdcommenter'
+" 2022-02: Some general thoughts on autocompletion/linting/LSP plugins: When I
+" started using Vim seriously around 2018 or so, I was in search of this
+" functionality, particularly in regards to C++. At that time, YouCompleteMe
+" seemed to be the de-facto standard for this. Since then, LSP has seen wide
+" adoption, and a lot more options have popped up. As far as I can tell, ALE was
+" indeed a mere linting engine, while YCM didn't even implement LSP. Today, the
+" waters have been muddied because each plugin wants to do it all now. Which
+" sort of makes sense, since completion, linting, even syntax highlighting, and
+" so on are relatively closely coupled functionalities, so not necessarily the
+" kind of stuff that you absolutely want to keep modular and separate. Beyond
+" ALE and YCM, there exist a selection of other plugins. Of these, `coc` seems
+" to be relatively popular at the moment. It depends on Node.js, however, which
+" is something I would be glad to avoid – perhaps without good reasons except my
+" taste – I don't know. I am not completely sure what to make of this at the
+" moment, but I guess for now I'll simply limit YCM to the CXX-family
+" `filetype`s, since I get the feeling that it's still very comprehensive for
+" those (although I also get the feeling that the other options can deliver
+" similar power), and then try to do the rest with ALE and perhaps Deoplete
+" (which is already being gradually replaced by `ddc`, however). Migrating away
+" from YCM may prove beneficial in the end, because (a) I can reduce the number
+" of (potentially interfering) plugins, (b) YCM is not that light-weight, and
+" (c) YCM has this non-trivial post-update hook which tends to fail if things
+" are not set up properly, making the process somewhat tedious.
+" I will probably remove this whole comment block at some point in the future,
+" but for now it serves as a reference on the current state of affairs, or at
+" least my grasp of it, and I want to have it in the commit history.
 
-Plug 'ctrlpvim/ctrlp.vim'
+Plug 'dense-analysis/ale'
 
-Plug 'ojroques/vim-oscyank'
+Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 
 " YCM needs a working Python environment and Cmake to install itself.
 " Consequently, I enable YCM only on some hosts.
@@ -55,7 +81,11 @@ if s:hostname == "lasse-alpine-env-0"
   Plug 'Valloric/YouCompleteMe', { 'do': 'python3 install.py --clang-completer --system-libclang' }
 end
 
-Plug 'dense-analysis/ale'
+Plug 'preservim/nerdcommenter'
+
+Plug 'ctrlpvim/ctrlp.vim'
+
+Plug 'ojroques/vim-oscyank'
 
 Plug 'dag/vim-fish'
 
@@ -92,8 +122,19 @@ set laststatus=2
 set statusline=%{getcwd()}%=%f%m%r%h%w%=%l,%c%V\ %P
 set cursorline
 set wildmode=longest:full
+
+" Bracket pairs matched by `%`
 set matchpairs=(:),{:},[:],<:>
-set nocompatible " is always set in neovim, but doesn't hurt
+
+" This is always set in neovim, but doesn't hurt to set it here as well.
+set nocompatible
+
+" Clipboard registers
+set clipboard+=unnamedplus
+
+" Maximum height of the popup menu for insert mode completion
+set pumheight=12
+" TODO: Probably also set `pumwidth` as soon as I am on Neovim ≥0.5?
 
 " Reduce key code delays
 set ttimeoutlen=20
@@ -141,8 +182,6 @@ vnoremap <c-l> <char-62>gv
 " for vim's native netrw browser
 " let g:netrw_banner=0
 let g:netrw_liststyle=3
-
-set clipboard+=unnamedplus
 
 " TeX flavor for vim's native ft-tex-plugin, also used by vimtex
 let g:tex_flavor = 'latex'
@@ -440,6 +479,9 @@ endif
 
 """" YouCompleteMe configuration
 
+" Disable YCM for any non-CXX-family files.
+let g:ycm_filetype_whitelist = {'c': 1, 'cpp': 1}
+
 if s:hostname == "lasse-mbp-0"
   let g:ycm_server_python_interpreter = '/usr/local/bin/python3'
 elseif s:hostname == "lasse-mba-0"
@@ -480,6 +522,20 @@ let g:ale_sign_error = 'E>'
 let g:ale_sign_warning = 'W>'
 
 let g:ale_echo_msg_format = '%s [%linter%% code%]'
+
+" Disable ALE completion. This is the default, but I set it here explicitly to
+" emphasize that I'm using other means of completion.
+let g:ale_completion_enabled = 0
+
+"""" Deoplete configuration
+
+" Note: Deoplete latches onto the `ale` source automatically.
+
+let g:deoplete#enable_at_startup = 1
+
+" Disable Deoplete for CXX-family `filetype`s to let YCM take over
+autocmd FileType c,cpp
+  \ call deoplete#custom#buffer_option('auto_complete', v:false)
 
 """" NERDCommenter configuration
 
