@@ -1,5 +1,8 @@
 " init.vim or '.vimrc' file thrown together by me (lasse)
 
+" TODO: Think about porting this to Lua? Or should I try to remain somewhat
+" close to regular Vim?
+
 """ Things that need to be done early
 
 " I would love to set this to `fish`, but POSIX compliance is needed for some
@@ -37,6 +40,9 @@ let g:loaded_perl_provider = 1
 " `vim-plug` needs to be installed beforehand, I have not automated that here.
 " I chose the directory name `plugged` as suggested by the `vim-plug` readme.
 
+" TODO: What about Neovim's native plugin manager? Is it good enough to justify
+" dropping `vim-plug` at some point?
+
 call plug#begin('~/.config/nvim/plugged')
 
 " 2022-02: Some general thoughts on autocompletion/linting/LSP plugins: When I
@@ -62,6 +68,9 @@ call plug#begin('~/.config/nvim/plugged')
 " of (potentially interfering) plugins, (b) YCM is not that light-weight, and
 " (c) YCM has this non-trivial post-update hook which tends to fail if things
 " are not set up properly, making the process somewhat tedious.
+" Another point that adds to all of this is that Neovim is in the process of
+" enabling support for LSP natively at the moment, so who knows, perhaps I won't
+" need any plugins for this anymore at some point.
 " I will probably remove this whole comment block at some point in the future,
 " but for now it serves as a reference on the current state of affairs, or at
 " least my grasp of it, and I want to have it in the commit history.
