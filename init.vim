@@ -2,6 +2,7 @@
 
 " TODO: Think about porting this to Lua? Or should I try to remain somewhat
 " close to regular Vim?
+" TODO: Work through this article: https://aca.github.io/neovim_startuptime.html
 
 """ Things that need to be done early
 
