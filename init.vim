@@ -81,6 +81,8 @@ Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 
 " YCM needs a working Python environment and Cmake to install itself.
 " Consequently, I enable YCM only on some hosts.
+" TODO: Separate the hostname-dependent part out and define some general on/off
+" and config switches for plugins?
 if s:hostname == "lasse-mbp-0" || s:hostname == "lasse-mba-0" || s:hostname == "lasse-lubuntu-0"
   Plug 'Valloric/YouCompleteMe', { 'do': 'python3 install.py --clang-completer' }
 end
@@ -282,6 +284,48 @@ vnoremap <c-h> <lt>gv
 " Note: I'm using `<char-62>` to target the key `>` because there is no `<gt>`.
 vnoremap <c-l> <char-62>gv
 
+""" Folding
+
+set foldmethod=syntax
+set fillchars=vert:\|,fold:\ 
+"set foldminlines=2
+
+" Here's a function that opens all folds and then folds only the top level
+" folds. I'd like to open my files in this way. Unfortunately, I have not found
+" a way to make this work properly with autocmd.
+"function FoldTopLevel()
+"  :%foldo!
+"  :%foldc
+"endfunction
+
+nnoremap <space> za
+
+""" Concealing
+set conceallevel=0
+
+""" Search, replace
+
+set ignorecase
+set smartcase
+set incsearch
+set hlsearch
+nnoremap /<cr> :noh<cr>
+nnoremap - :%s///g<left><left><left>
+nnoremap _ :%s///g<left><left><left><c-r><c-w><right>
+
+""" Tabbing, whitespace, indenting
+
+set expandtab
+set shiftwidth=2
+set tabstop=2
+
+" Show whitespace characters
+" The following is a line with a tab, trailing whitespace and a nbsp.
+" 	This was the tab, here is the nbsp:  And here is some whitespace:    
+" Seems like the `+-` for tabs gets overridden by `vim-indentguides`…
+set listchars=tab:+-,nbsp:·,trail:·
+set list
+
 " Enable spell checking
 "set spell spelllang=en_us
 
@@ -296,10 +340,17 @@ let g:tex_flavor = 'latex'
 let g:tex_conceal = ''
 autocmd FileType plaintex,context,tex,bib set conceallevel=0
 
-""" Mouse Behavior
+""" Mouse behavior and scrolling
 
 set mouse=a
-set mousemodel=popup_setpos " i might want to configure a menu for this
+set mousemodel=popup_setpos " I might want to configure a menu for this.
+
+" Remap arrow keys to do scrolling – has the added advantage of avoiding bad
+" cursor movement habits.
+map <up> <c-y>
+map <down> <c-e>
+map <left> <nop>
+map <right> <nop>
 
 " Weird looking scroll wheel mapping.
 " Here's a corresponding GitHub issue:
@@ -450,58 +501,9 @@ imap <c-4-ScrollWheelRight> <nop>
 "map <s-4-ScrollWheelRight> <nop>
 "map <c-4-ScrollWheelRight> <nop>
 
-" Remap arrow keys to do scrolling
-" This has the added advantage of avoiding bad cursor movement habits 😉
-map <up> <c-y>
-map <down> <c-e>
-map <left> <nop>
-map <right> <nop>
-
-""" Folding
-
-set foldmethod=syntax
-set fillchars=vert:\|,fold:\ 
-"set foldminlines=2
-
-" Here's a function that opens all folds and then folds only the top level
-" folds. I'd like to open my files in this way. Unfortunately, I have not found
-" a way to make this work properly with autocmd.
-"function FoldTopLevel()
-"  :%foldo!
-"  :%foldc
-"endfunction
-
-nnoremap <space> za
-
-""" Concealing
-set conceallevel=0
-
-""" Search, replace
-
-set ignorecase
-set smartcase
-set incsearch
-set hlsearch
-nnoremap /<cr> :noh<cr>
-nnoremap - :%s///g<left><left><left>
-nnoremap _ :%s///g<left><left><left><c-r><c-w><right>
-
-""" Tabbing, whitespace, indenting
-
-set expandtab
-set shiftwidth=2
-set tabstop=2
-
-" Show whitespace characters
-" The following is a line with a tab, trailing whitespace and a nbsp.
-" 	This was the tab, here is the nbsp:  And here is some whitespace:    
-" Seems like the `+-` for tabs gets overridden by `vim-indentguides`…
-set listchars=tab:+-,nbsp:·,trail:·
-set list
-
 """ Clang-format integration
 
-" Note: ALE support `clang-format` as a fixer, so perhaps I should use that
+" TODO: ALE support `clang-format` as a fixer, so perhaps I should use that
 " instead. This whole section is a little hacky and platform-dependent anyway.
 
 let g:clang_format_on_save = 0 " Defined by myself
@@ -541,6 +543,8 @@ elseif s:hostname == "lasse-mba-0"
 endif
 
 """ Configuration of plugins
+
+" TODO: Only configure plugins when they are present/enabled?
 
 """" YouCompleteMe configuration
 
