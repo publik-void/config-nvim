@@ -4,6 +4,9 @@
 " close to regular Vim?
 " TODO: Work through this article: https://aca.github.io/neovim_startuptime.html
 " TODO: This looks interesting as well: https://github.com/nathom/filetype.nvim
+" TODO: Have individual files for specific file types? E.g. set conceallevel and
+" shiftwidth for `filetype`s such as JSON, Python, TeX, … This may come in
+" handy: https://vi.stackexchange.com/questions/14371/why-files-in-config-nvim-after-ftplugin-are-not-taken-into-acount
 
 """ Things that need to be done early
 
