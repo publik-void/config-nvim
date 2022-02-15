@@ -3,6 +3,7 @@
 " TODO: Think about porting this to Lua? Or should I try to remain somewhat
 " close to regular Vim?
 " TODO: Work through this article: https://aca.github.io/neovim_startuptime.html
+" TODO: This looks interesting as well: https://github.com/nathom/filetype.nvim
 
 """ Things that need to be done early
 
