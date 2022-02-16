@@ -590,7 +590,7 @@ let g:ale_linters = {
   \ 'sh': ['shell'],
   \ 'cpp': [],
   \ 'python': ['flake8'],
-  \ 'julia': ['languageserver']}
+  \ 'julia': []} " disabled `languageserver` for now
 
 let g:ale_sign_error = 'E>'
 let g:ale_sign_warning = 'W>'
