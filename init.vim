@@ -99,7 +99,7 @@ end
 
 Plug 'preservim/nerdcommenter'
 
-Plug 'ctrlpvim/ctrlp.vim'
+Plug 'ctrlpvim/ctrlp.vim' " TODO: Substitute with Telescope?
 
 Plug 'ojroques/vim-oscyank'
 
