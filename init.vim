@@ -34,11 +34,11 @@ elseif s:hostname == "lasse-alpine-env-0"
 endif
 
 " Explicitly disable some (unneeded?) providers. Not sure if this is sensible.
-let g:loaded_python_provider = 1
-"let g:loaded_python3_provider = 1
-let g:loaded_ruby_provider = 1
-let g:loaded_node_provider = 1
-let g:loaded_perl_provider = 1
+let g:loaded_python_provider = 0
+"let g:loaded_python3_provider = 0
+let g:loaded_ruby_provider = 0
+let g:loaded_node_provider = 0
+let g:loaded_perl_provider = 0
 
 """ vim-plug
 
@@ -590,7 +590,7 @@ let g:ale_linters = {
   \ 'sh': ['shell'],
   \ 'cpp': [],
   \ 'python': ['flake8'],
-  \ 'julia': ['languageserver']}
+  \ 'julia': []} " ['languageserver']}
 
 let g:ale_sign_error = 'E>'
 let g:ale_sign_warning = 'W>'
@@ -600,6 +600,11 @@ let g:ale_echo_msg_format = '%s [%linter%% code%]'
 " Disable ALE completion. This is the default, but I set it here explicitly to
 " emphasize that I'm using other means of completion.
 let g:ale_completion_enabled = 0
+
+" Set flake8 ignore list in this vim config
+" Could use flake8's config files alternatively
+call ale#Set('python_flake8_options',
+  '--ignore=E111,E114,E121,E128,E226,E251,E302,E305')
 
 """" Deoplete configuration
 
