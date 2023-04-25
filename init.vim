@@ -93,7 +93,7 @@ Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 " Consequently, I enable YCM only on some hosts.
 " TODO: Separate the hostname-dependent part out and define some general on/off
 " and config switches for plugins?
-if s:hostname == "lasse-mbp-0" || s:hostname == "lasse-mba-0" || s:hostname == "lasse-lubuntu-0"
+if s:hostname == "lasse-mbp-0" || s:hostname == "lasse-mba-0" || s:hostname == "lasse-debian-0"
   Plug 'Valloric/YouCompleteMe', { 'do': 'python3 install.py --clang-completer' }
 end
 
@@ -600,6 +600,10 @@ let g:ycm_key_list_select_completion = ['<tab>']
 let g:ycm_key_list_previous_completion = ['<s-tab>']
 let g:ycm_key_list_stop_completion = ['<c-y>', '<c-e>', '<up>', '<down>']
 noremap ? :YcmCompleter GoTo<cr> " I don't use `?` for backward search anyway.
+
+" Note that the above tab key assignments seem to happen if YCM is loaded, even
+" if it is disabled. That way, the popup menu as used by ALE also works with the
+" tab key. That's nice, but it'd be better if it worked without YCM.
 
 """" ALE configuration
 " ALE runs all available linters by default. I would like to choose my linters
