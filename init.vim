@@ -31,6 +31,8 @@ elseif s:hostname == "lasse-mba-0"
   let g:python3_host_prog = '/usr/local/bin/python3'
 elseif s:hostname == "lasse-alpine-env-0"
   let g:python3_host_prog = '/usr/bin/python3'
+elseif s:hostname == "lasse-debian-0"
+  let g:python3_host_prog = '/usr/bin/python3'
 endif
 
 " Explicitly disable some (unneeded?) providers. Not sure if this is sensible.
@@ -39,6 +41,9 @@ let g:loaded_python_provider = 0
 let g:loaded_ruby_provider = 0
 let g:loaded_node_provider = 0
 let g:loaded_perl_provider = 0
+
+" Tell Python X to always use Python 3
+set pyxversion=3
 
 """ vim-plug
 
@@ -99,9 +104,8 @@ end
 
 Plug 'preservim/nerdcommenter'
 
-Plug 'ctrlpvim/ctrlp.vim' " TODO: Substitute with Telescope?
-
-Plug 'ojroques/vim-oscyank'
+" Disabled for now in favor of vim-ranger
+"Plug 'ctrlpvim/ctrlp.vim' " TODO: Substitute with Telescope?
 
 Plug 'dag/vim-fish'
 
@@ -141,7 +145,7 @@ call plug#end()
 
 "let g:solarized_visibility = "low"
 
-function! SolarizedOverrides()
+function SolarizedOverrides()
   if &background == "light"
     hi! MatchParen ctermbg=7
     hi! WhiteSpace ctermbg=7
@@ -169,7 +173,7 @@ set background=light
 " just write a function. Don't know if the plugin does more than just toggling
 " the background like this function, though.
 " Note: This function unfortunetaly clears custom `highlight`s.
-function! ToggleBackground()
+function ToggleBackground()
   if &background == "light"
     set background=dark
   else
@@ -183,7 +187,8 @@ nnoremap + :call ToggleBackground()<esc>
 
 set whichwrap+=<,>,h,l,[,],~
 set path+=**
-set lazyredraw
+"set lazyredraw " Disabled this on 2023-04-25 to try and see if some occasional
+                " glitches would disapper
 set cursorline
 set wildmode=longest:full
 set noshowmode
@@ -242,8 +247,33 @@ set matchpairs=(:),{:},[:],<:>
 " This is always set in neovim, but doesn't hurt to set it here as well.
 set nocompatible
 
-" Clipboard registers
+" Clipboard
 set clipboard+=unnamedplus
+
+" TODO: I'll have to separate the cross-platform clipboard out from tmux.
+"" Use tmux clipboard if available. This has the advantage of letting tmux handle
+"" the specifics of copying and pasting, which I have configured for it anyway.
+"" Note: In `:help clipboard-tool`, it says that Neovim looks for tmux, but only
+"" after it did not find a bunch of other clipboard options. I don't know how to
+"" change the priorities of the clipboard tool list's entries or how to re-use
+"" the tmux integration. Luckily, they give an example for how to write the tmux
+"" integration manually.
+"let s:tmux_clipboard = {
+"\   'name': 'ManualTmuxClipboard',
+"\   'copy': {
+"\      '+': 'tmux load-buffer -',
+"\      '*': 'tmux load-buffer -',
+"\    },
+"\   'paste': {
+"\      '+': 'tmux save-buffer -',
+"\      '*': 'tmux save-buffer -',
+"\   },
+"\   'cache_enabled': 1,
+"\ }
+"
+"if !empty($TMUX)
+"  let g:clipboard = s:tmux_clipboard
+"end
 
 " Maximum height of the popup menu for insert mode completion
 set pumheight=12
@@ -305,9 +335,6 @@ set fillchars=vert:\|,fold:\
 
 nnoremap <space> za
 
-""" Concealing
-set conceallevel=0
-
 """ Search, replace
 
 set ignorecase
@@ -318,6 +345,10 @@ nnoremap /<cr> :noh<cr>
 nnoremap - :%s///g<left><left><left>
 nnoremap _ :%s///g<left><left><left><c-r><c-w><right>
 
+""" Concealing
+
+set conceallevel=0
+
 """ Tabbing, whitespace, indenting
 
 set expandtab
@@ -327,7 +358,6 @@ set tabstop=2
 " Show whitespace characters
 " The following is a line with a tab, trailing whitespace and a nbsp.
 " 	This was the tab, here is the nbsp:  And here is some whitespace:    
-" Seems like the `+-` for tabs gets overridden by `vim-indentguides`…
 set listchars=tab:+-,nbsp:·,trail:·
 set list
 
@@ -508,12 +538,12 @@ imap <c-4-ScrollWheelRight> <nop>
 
 """ Clang-format integration
 
-" TODO: ALE support `clang-format` as a fixer, so perhaps I should use that
+" TODO: ALE supports `clang-format` as a fixer, so perhaps I should use that
 " instead. This whole section is a little hacky and platform-dependent anyway.
 
 let g:clang_format_on_save = 0 " Defined by myself
 
-function! Formatonsave()
+function Formatonsave()
   if g:clang_format_on_save == 1
     let l:formatdiff = 1
     if s:hostname == "lasse-mbp-0" || s:hostname == "lasse-mba-0"
@@ -524,7 +554,7 @@ function! Formatonsave()
   endif
 endfunction
 
-function! FormatFile()
+function FormatFile()
   let l:lines="all"
     if s:hostname == "lasse-mbp-0" || s:hostname == "lasse-mba-0"
       py3f /usr/local/opt/llvm/share/clang/clang-format.py
@@ -628,13 +658,32 @@ map <right> <plug>NERDCommenterAlignBoth
 
 """" vim-ranger configuration
 
-let g:ranger_map_keys = 1
+let g:ranger_map_keys = 0
 let g:ranger_replace_netrw = 1
+
+" If the current buffer is modified, open vim-ranger in a new window, unless
+" `hidden` is set.
+" vim-ranger will throw the error "E37: No write since last change" if the same
+" file as the currently open modified buffer is opened. I was not able to catch
+" or silence the error. I think this is because vim-ranger runs asynchronously
+" and the code of the below function just continues without waiting for the user
+" to quit ranger.
+function RangerSmart()
+  if !&hidden && getbufinfo("%")[0].changed
+    split +Ranger
+  else
+    Ranger
+  end
+endfunction
+
+command RangerSmart call RangerSmart()
+
+nmap <c-p> :RangerSmart<cr>
 
 """" vim-indentguides configuration
 
 let g:indentguides_spacechar = "▏"
-let g:indentguides_tabchar = "▏"
+let g:indentguides_tabchar = "" " Disable for tabs to show listchars instead
 
 """" vim-asciidoc-folding configuration
 
@@ -689,12 +738,4 @@ let g:vimtex_format_enabled = 1
 
 " Don't use conceal features
 let g:vimtex_syntax_conceal_default = 0
-
-"""" oscyank configuration
-
-" Automatically copy the unnamed register to clipboard through ANSI OSC52 on
-" every yank operation (not sure if this copies twice if another clipboard
-" provider is present, but since OSC52 also isn't guaranteed to work everywhere,
-" I guess better risk doing it twice than not doing it at all).
-autocmd TextYankPost * if v:event.operator is 'y' && v:event.regname is '' | execute 'OSCYankReg "' | endif
 
