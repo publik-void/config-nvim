@@ -634,7 +634,7 @@ let g:ale_completion_enabled = 0
 " Set flake8 ignore list in this vim config
 " Could use flake8's config files alternatively
 call ale#Set('python_flake8_options',
-  \ '--ignore=E111,E114,E121,E128,E201,E203,E221,E222,E226,E241,E251,E261,E262,E302,E303,E305,E501,E702,W391,W504')
+  \ '--ignore=E111,E114,E121,E128,E201,E203,E221,E222,E226,E241,E251,E261,E262,E302,E303,E305,E501,E702,E731,W391,W504')
 
 """" Deoplete configuration
 
