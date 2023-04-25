@@ -358,6 +358,7 @@ set tabstop=2
 " Show whitespace characters
 " The following is a line with a tab, trailing whitespace and a nbsp.
 " 	This was the tab, here is the nbsp:  And here is some whitespace:    
+" Note: vim-indentguides tends to mess with the listchars.
 set listchars=tab:+-,nbsp:·,trail:·
 set list
 
@@ -590,6 +591,8 @@ if s:hostname == "lasse-mbp-0"
   let g:ycm_server_python_interpreter = '/usr/local/bin/python3'
 elseif s:hostname == "lasse-mba-0"
   let g:ycm_server_python_interpreter = '/usr/local/bin/python3'
+elseif s:hostname == "lasse-debian-0"
+  let g:ycm_server_python_interpreter = '/usr/bin/python3'
 elseif s:hostname == "lasse-alpine-env-0"
   let g:ycm_server_python_interpreter = '/usr/bin/python3'
 endif
@@ -688,7 +691,13 @@ nmap <c-p> :RangerSmart<cr>
 """" vim-indentguides configuration
 
 let g:indentguides_spacechar = "▏"
-let g:indentguides_tabchar = "" " Disable for tabs to show listchars instead
+let g:indentguides_tabchar = "·"
+
+" I would like to disable the indent guides for tabs, but setting the above to
+" an empty string results in an error on some setups and I haven't found another
+" way yet.
+" Maybe it's in fact okay like this, that way it shows it's a tab while also
+" showing a bit of an indent guide.
 
 """" vim-asciidoc-folding configuration
 
