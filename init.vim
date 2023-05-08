@@ -250,30 +250,31 @@ set nocompatible
 " Clipboard
 set clipboard+=unnamedplus
 
-" TODO: I'll have to separate the cross-platform clipboard out from tmux.
-"" Use tmux clipboard if available. This has the advantage of letting tmux handle
-"" the specifics of copying and pasting, which I have configured for it anyway.
-"" Note: In `:help clipboard-tool`, it says that Neovim looks for tmux, but only
-"" after it did not find a bunch of other clipboard options. I don't know how to
-"" change the priorities of the clipboard tool list's entries or how to re-use
-"" the tmux integration. Luckily, they give an example for how to write the tmux
-"" integration manually.
-"let s:tmux_clipboard = {
-"\   'name': 'ManualTmuxClipboard',
-"\   'copy': {
-"\      '+': 'tmux load-buffer -',
-"\      '*': 'tmux load-buffer -',
-"\    },
-"\   'paste': {
-"\      '+': 'tmux save-buffer -',
-"\      '*': 'tmux save-buffer -',
-"\   },
-"\   'cache_enabled': 1,
-"\ }
-"
-"if !empty($TMUX)
-"  let g:clipboard = s:tmux_clipboard
-"end
+" Use CPCP for clipboard handling if available
+let s:cpcp_command = ''
+for cmd in ['cpcp', 'cpcp.sh', $HOME..'/.config/cross-platform-copy-paste/cpcp.sh']
+  if executable(cmd)
+    let s:cpcp_command = cmd
+    break
+  end
+endfor
+
+if !empty(s:cpcp_command)
+  let s:cpcp_clipboard = {
+  \   'name': 'CPCPClipboard',
+  \   'copy': {
+  \      '+': [s:cpcp_command, '--base64=auto'],
+  \      '*': [s:cpcp_command, '--base64=auto'],
+  \    },
+  \   'paste': {
+  \      '+': [s:cpcp_command, '--base64=auto', 'paste'],
+  \      '*': [s:cpcp_command, '--base64=auto', 'paste'],
+  \   },
+  \   'cache_enabled': 1,
+  \ }
+
+  let g:clipboard = s:cpcp_clipboard
+end
 
 " Maximum height of the popup menu for insert mode completion
 set pumheight=12
