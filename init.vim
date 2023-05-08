@@ -274,7 +274,14 @@ if !empty(s:cpcp_command)
   \ }
 
   let g:clipboard = s:cpcp_clipboard
-end
+endif
+
+" If I'm ever confused about how Neovim handles copying whole lines again: It's
+" simple. No metadata or anything. Neovim just copies a line with its trailing
+" newline and when pasting determines whether to paste as a new line or as text
+" inside the current line depending on whether the pasted buffer ends on a
+" newline. I assume it's the same for regular Vim, but don't know for sure at
+" the time of writing this.
 
 " Maximum height of the popup menu for insert mode completion
 set pumheight=12
