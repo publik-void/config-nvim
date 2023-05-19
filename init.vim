@@ -252,23 +252,26 @@ set clipboard+=unnamedplus
 
 " Use CPCP for clipboard handling if available
 let s:cpcp_command = ''
-for cmd in ['cpcp', 'cpcp.sh', $HOME..'/.config/cross-platform-copy-paste/cpcp.sh']
+for cmd in [$HOME..'/.config/cross-platform-copy-paste/cpcp.sh', 'cpcp', 'cpcp.sh']
   if executable(cmd)
     let s:cpcp_command = cmd
     break
   end
 endfor
 
+" The commands in the dictionary below can be written as lists of individual
+" arguments in newer versions of Neovim, but on some of the systems I use, the
+" Neovim version is too old.
 if !empty(s:cpcp_command)
   let s:cpcp_clipboard = {
   \   'name': 'CPCPClipboard',
   \   'copy': {
-  \      '+': [s:cpcp_command, '--base64=auto'],
-  \      '*': [s:cpcp_command, '--base64=auto'],
+  \      '+': s:cpcp_command..' --base64=auto',
+  \      '*': s:cpcp_command..' --base64=auto',
   \    },
   \   'paste': {
-  \      '+': [s:cpcp_command, '--base64=auto', 'paste'],
-  \      '*': [s:cpcp_command, '--base64=auto', 'paste'],
+  \      '+': s:cpcp_command..' --base64=auto paste',
+  \      '*': s:cpcp_command..' --base64=auto paste',
   \   },
   \   'cache_enabled': 1,
   \ }
