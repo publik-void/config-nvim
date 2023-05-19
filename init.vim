@@ -109,6 +109,10 @@ Plug 'preservim/nerdcommenter'
 
 Plug 'dag/vim-fish'
 
+" Seems like this is a newer and better fish syntax plugin, but at the moment I
+" get errors when using it…
+"Plug 'khaveesh/vim-fish-syntax'
+
 Plug 'francoiscabrol/ranger.vim'
 Plug 'rbgrouleff/bclose.vim' " Dependency of `ranger.vim`
 
