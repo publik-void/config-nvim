@@ -1,17 +1,22 @@
 " `init.vim` or '`.vimrc`' file thrown together by me.
 
 " TODO: Think about porting this to Lua? Or should I try to remain somewhat
-" close to regular Vim?
+" close to regular Vim? -> Maybe with the basics
 " TODO: Work through this article: https://aca.github.io/neovim_startuptime.html
 " TODO: This looks interesting as well: https://github.com/nathom/filetype.nvim
 " TODO: Have individual files for specific file types? E.g. set conceallevel and
 " shiftwidth for `filetype`s such as JSON, Python, TeX, … This may come in
 " handy: https://vi.stackexchange.com/questions/14371/why-files-in-config-nvim-after-ftplugin-are-not-taken-into-acount
+" TODO: Some parts of this file would fit neatly into smaller collections
+" representing one 'feature'. Like e.g. all LaTeX stuff could be put into a
+" small unit, that I could then enable or disable in the beginning of this file,
+" depending on something like hostname, version, availability of binaries, etc.
+" I probably don't need LaTex on a Raspberry Pi and I might not be able to use
+" some newer plugins on platforms with old nvim version, etc…
 
 """ Things that need to be done early
 
-" I would love to set this to `fish`, but POSIX compliance is needed for some
-" things to work correctly.
+" POSIX compliance needed
 set shell=sh
 
 " Get hostname to allow for platform-dependent customization
@@ -111,6 +116,7 @@ Plug 'dag/vim-fish'
 
 " Seems like this is a newer and better fish syntax plugin, but at the moment I
 " get errors when using it…
+" TODO: Could this be because of my additional config for fish files below?
 "Plug 'khaveesh/vim-fish-syntax'
 
 Plug 'francoiscabrol/ranger.vim'
@@ -121,16 +127,18 @@ Plug 'thaerkh/vim-indentguides'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-repeat' " Makes `.` work for `vim-surround`.
 
-Plug 'junegunn/goyo.vim'
+"Plug 'junegunn/goyo.vim'
 
 Plug 'matcatc/vim-asciidoc-folding' " I'll need this as long as the official
 " Asciidoc syntax support does not support folding
 
-Plug 'https://github.com/arnoudbuzing/wolfram-vim.git' " This is only a syntax
-" file, not a 'real' plugin
+"Plug 'https://github.com/arnoudbuzing/wolfram-vim.git' " This is only a syntax
+"" file, not a 'real' plugin
 
-Plug 'guns/xterm-color-table.vim'
+"Plug 'guns/xterm-color-table.vim'
 
+" If at some point I'll switch to lazy plugin loading: VimTeX should not be
+" loaded lazily.
 Plug 'lervag/vimtex'
 
 Plug 'JuliaEditorSupport/julia-vim'
