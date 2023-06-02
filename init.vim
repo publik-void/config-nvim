@@ -1,12 +1,18 @@
 " `init.vim` or '`.vimrc`' file thrown together by me.
 
+" (the following line is a modeline)
+" vim: foldmethod=marker
+
+" {{{1 General notes and todos
+
 " TODO: Think about porting this to Lua? Or should I try to remain somewhat
 " close to regular Vim? -> Maybe with the basics
 " TODO: Work through this article: https://aca.github.io/neovim_startuptime.html
 " TODO: This looks interesting as well: https://github.com/nathom/filetype.nvim
 " TODO: Have individual files for specific file types? E.g. set conceallevel and
-" shiftwidth for `filetype`s such as JSON, Python, TeX, … This may come in
-" handy: https://vi.stackexchange.com/questions/14371/why-files-in-config-nvim-after-ftplugin-are-not-taken-into-acount
+" shiftwidth for `filetype`s such as JSON, Python, TeX, …, instead of in here.
+" This may come in handy:
+" https://vi.stackexchange.com/questions/14371/why-files-in-config-nvim-after-ftplugin-are-not-taken-into-acount
 " TODO: Some parts of this file would fit neatly into smaller collections
 " representing one 'feature'. Like e.g. all LaTeX stuff could be put into a
 " small unit, that I could then enable or disable in the beginning of this file,
@@ -14,18 +20,18 @@
 " I probably don't need LaTex on a Raspberry Pi and I might not be able to use
 " some newer plugins on platforms with old nvim version, etc…
 
-""" Things that need to be done early
+" {{{1 Essential initializations and platform info
 
 " POSIX compliance needed
 set shell=sh
 
-" Get hostname to allow for platform-dependent customization
+" Get platform info
+" to find out if it's Neovim, run `has('nvim')`
+" vim version already resides in variable `v:version`
+let s:user = substitute(system('whoami'), '\n', '', '')
 let s:hostname = substitute(system('hostname'), '\n', '', '')
 
-" Remove all autocommands
-:autocmd!
-
-""" Neovim providers
+" {{{1 Neovim providers
 
 " Set the location of the Python 3 binary. `provider.txt` says setting this
 " makes startup faster.
@@ -50,7 +56,7 @@ let g:loaded_perl_provider = 0
 " Tell Python X to always use Python 3
 set pyxversion=3
 
-""" vim-plug
+" {{{1 vim-plug
 
 " `vim-plug` needs to be installed beforehand, I have not automated that here.
 " I chose the directory name `plugged` as suggested by the `vim-plug` readme.
@@ -122,8 +128,6 @@ Plug 'dag/vim-fish'
 Plug 'francoiscabrol/ranger.vim'
 Plug 'rbgrouleff/bclose.vim' " Dependency of `ranger.vim`
 
-Plug 'thaerkh/vim-indentguides'
-
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-repeat' " Makes `.` work for `vim-surround`.
 
@@ -143,66 +147,130 @@ Plug 'lervag/vimtex'
 
 Plug 'JuliaEditorSupport/julia-vim'
 
+" Modification of Vim's default color scheme, using only ANSI colors
+Plug 'jeffkreeftmeijer/vim-dim', {'branch': '1.x'}
+
 call plug#end()
 
-""" Colors
+" {{{1 `background` handling
 
-" Note: Doing this early is sensible because colorschemes like this one tend to
-" clear all custom `highlight`s.
-" TODO: Think about re-doing this in a better way, perhaps leveraging Neovim's
-" new Treesitter functionality, and generally less hackiness and better support
-" for terminal colors as well as true color?
+" Note: As a summary for the below notes: Getting iTerm2, tmux and Neovim (and
+" possibly also other terminals and SSH/Mosh) to play nicely together so that
+" the `background` option is always synchronized automatically is something
+" people are definitely working on here and there, but it seems like the state
+" of things is not quite ideal at the moment. I'll try to cover some reasonable
+" cases but may have to set `background` manually in some instances.
+" Note: Setting `background` should be done automatically by Neovim. This seems
+" to depend on some `autocmd`, so deleting all autocommands in the beginning of
+" the vimrc file (like some do) breaks it. The detection uses an OSC11 escape
+" sequence, which is basically a query to the Terminal about its background
+" color.
+" Note: iTerm2 sends `SIGWINCH` on profile changes and Neovim has an `autocmd
+" Signal SIGWINCH`. I don't know if `SIGWINCH` triggers re-detection of
+" background color already or if an extra `autocmd` needs to be added here.
+" Also, I can't even get any such autocommand to work with my setup…
+" Note: The automatic detection does not work inside `tmux`, as `tmux` does not
+" respond to the OSC11 escape sequence. This is because `tmux` could be running
+" in several terminals simultaneously. If the background color in `tmux` was set
+" by the user, it does respond, but this means I would then need to manage the
+" synchronization of `tmux`'s background color with the terminal's colors, which
+" seems unnecessarily non-elegant and error-prone.
+" Note: Neovim removed some code that used the environment variable `COLORFGBG`
+" for detecting a light or dark background. This is unfortunate, as it should be
+" possible to propagate this variable through `tmux`, `ssh`, etc. Still, another
+" problem is that the variable won't be updated on changes.
 
-" Use solarized color scheme 🙂
-
-"let g:solarized_visibility = "low"
-
-function SolarizedOverrides()
-  if &background == "light"
-    hi! MatchParen ctermbg=7
-    hi! WhiteSpace ctermbg=7
-
-    " For vim-indentguides
-    let g:indentguides_conceal_color = 'ctermfg=7 ctermbg=NONE'
-    let g:indentguides_specialkey_color = 'ctermfg=7 ctermbg=NONE'
-  else
-    hi! MatchParen ctermbg=0
-    hi! WhiteSpace ctermbg=0
-
-    " For vim-indentguides
-    let g:indentguides_conceal_color = 'ctermfg=0 ctermbg=NONE'
-    let g:indentguides_specialkey_color = 'ctermfg=0 ctermbg=NONE'
-
-  endif
-endfunction
-
-autocmd colorscheme solarized call SolarizedOverrides()
-
-colorscheme solarized
-set background=light
-
-" Solarized comes with a ToggleBackground plugin, but I figured I might as well
-" just write a function. Don't know if the plugin does more than just toggling
-" the background like this function, though.
-" Note: This function unfortunetaly clears custom `highlight`s.
-function ToggleBackground()
-  if &background == "light"
-    set background=dark
-  else
+" Let's put this into a function that can be extended with OSC11 and other
+" utilities if I feel the need, and can perhaps be called on certain triggers.
+function AttemptBackgroundDetect()
+  if empty($COLORFGBG)
     set background=light
+  else
+    let [l:fg, l:bg] = split($COLORFGBG, ';')
+    " So, what to include here and what not? Let's say white and bright colors
+    " except bright black.
+    let l:light_colors = ['7', '9', '10', '11', '12', '13', '14', '15']
+    if index(l:light_colors, l:bg) >= 0
+      set background=light
+    else
+      set background=dark
+    endif
   endif
 endfunction
 
-nnoremap + :call ToggleBackground()<esc>
+" Run it once, now
+call AttemptBackgroundDetect()
 
-""" Miscellaneous things
+" And add it as an `autocmd`
+augroup MyBackgroundDetect
+  " Note: the `++nested` is needed to re-apply the color scheme in response to
+  " the `background` option's value changing
+  autocmd Signal SIGWINCH ++nested call AttemptBackgroundDetect()
+  "" These are a sad workaround because SIGWINCH doesn't seem to work for me
+  "autocmd CursorHold * ++nested call AttemptBackgroundDetect()
+  "autocmd CursorHoldI * ++nested call AttemptBackgroundDetect()
+augroup END
+
+" {{{1 Colors
+
+" Use colorscheme `dim` to inherit terminal colors and extend/modify it a bit
+" See https://gist.github.com/romainl/379904f91fa40533175dfaec4c833f2f
+function! MyHighlights() abort
+  highlight StatusLine                   ctermfg=NONE ctermbg=NONE cterm=inverse
+
+  if &background == "light"
+    highlight LineNr                     ctermfg=15
+    "highlight CursorLineNr               ctermfg=7
+    highlight Whitespace                 ctermfg=15
+    highlight NonText                    ctermfg=15
+    highlight ColorColumn                ctermfg=8    ctermbg=15
+    highlight Folded                     ctermfg=8    ctermbg=NONE cterm=bold
+    highlight StatusLineNC               ctermfg=7    ctermbg=NONE cterm=inverse
+    highlight StatusLineWeak             ctermfg=NONE ctermbg=7    cterm=inverse
+    highlight StatusLineWeakNC           ctermfg=7    ctermbg=15   cterm=inverse
+  else
+    highlight LineNr                     ctermfg=8
+    highlight CursorLineNr               ctermfg=16
+    highlight Whitespace                 ctermfg=8
+    highlight NonText                    ctermfg=8
+    highlight ColorColumn                ctermfg=7    ctermbg=16
+    highlight Folded                     ctermfg=7    ctermbg=NONE cterm=bold
+    highlight StatusLineNC               ctermfg=16   ctermbg=NONE cterm=inverse
+    highlight StatusLineWeak             ctermfg=NONE ctermbg=8    cterm=inverse
+    highlight StatusLineWeakNC           ctermfg=16   ctermbg=8    cterm=inverse
+  endif
+endfunction
+
+augroup MyColors
+  autocmd!
+  autocmd ColorScheme dim ++nested call MyHighlights()
+augroup END
+
+" Set colorscheme only after all the `background` and custom highlighting
+" business has been handled.
+colorscheme dim
+
+" {{{1 Miscellaneous setup
+
+" Long lines continue left and right instead of wrapping
+set nowrap
+
+" Search wraps at top and bottom of file
+set wrapscan
 
 set whichwrap+=<,>,h,l,[,],~
+
 set path+=**
+
 "set lazyredraw " Disabled this on 2023-04-25 to try and see if some occasional
                 " glitches would disapper
+
+" Highlight the line the cursor is on
 set cursorline
+
 set wildmode=longest:full
+
+" Don't show mode in command line
 set noshowmode
 
 """ Status line
@@ -211,23 +279,14 @@ set noshowmode
 " Always put a status line on every window.
 set laststatus=2
 
-" Custom `highlight`s for status line coloring. The `NC` versions are for
-" out-of-focus windows.
-highlight! MyStatuslineStrong ctermfg=15 ctermbg=10
-highlight! MyStatuslineStrongNC ctermfg=15 ctermbg=11
-highlight! MyStatuslineWeak ctermfg=14 ctermbg=10
-highlight! MyStatuslineWeakNC ctermfg=14 ctermbg=11
-
-" Function to get the correct highlight – in principle extensible to match other
-" color schemes and so on…
+" Function to get the correct highlight
 function MyStatuslineHighlightLookup(is_focused, type) abort
-  let l:my_statusline_highlight_lookup = {
-    \ 'strong': 'MyStatusLineStrong',
-    \ 'weak': 'MyStatusLineWeak'}
-  let l:default = 'StatusLine'
-  let l:highlight = get(l:my_statusline_highlight_lookup, a:type, l:default)
+  let l:highlight = '%#'
+  let l:highlight .= 'StatusLine'
+  let l:highlight .= a:type == 'weak' ? 'Weak' : ''
   let l:highlight .= a:is_focused ? '' : 'NC'
-  return '%#' . l:highlight . '#'
+  let l:highlight .= '#'
+  return l:highlight
 endfunction
 
 " Creating the status line from a function gives flexibility, e.g. higlighting
@@ -310,16 +369,15 @@ set number
 set relativenumber
 set numberwidth=1
 
-nmap <bs> <c-^>
+" Switch to alternate file with backspace
+nnoremap <bs> <c-^>
 
 " Show 81st column
-" I don't set an explicit highlight color, since the default light and dark
-" solarized colors work nicely.
 set colorcolumn=81
 
-" I'll try to use this as a global setting, maybe that's a stupid idea.
-" I can still add filetype-dependent overrides though.
-" For reformatting, use gq or gw. :help gq and :help gw might help.
+" I want this in most cases, therefore let's set it globally. Filetype scripts,
+" modelines, etc. can be used to change it when needed.
+" For reformatting, use `gq` or `gw`. `:help gq` and `:help gw` might help.
 set textwidth=80
 
 " Moving lines up and down – can of course be done with `dd` and `p` as well,
@@ -332,6 +390,7 @@ vnoremap <c-j> :move '>+1<cr>gv=gv
 vnoremap <c-k> :move '<-2<cr>gv=gv
 
 " Moving lines left and right, i.e. indent or unindent
+" Note: I like the behavior of this more than `<` and `>` in normal mode.
 nnoremap <c-h> a<c-d><esc>
 nnoremap <c-l> a<c-t><esc>
 inoremap <c-h> <c-d>
@@ -342,7 +401,7 @@ vnoremap <c-h> <lt>gv
 " Note: I'm using `<char-62>` to target the key `>` because there is no `<gt>`.
 vnoremap <c-l> <char-62>gv
 
-""" Folding
+" Folding
 
 set foldmethod=syntax
 set fillchars=vert:\|,fold:\ 
@@ -358,7 +417,7 @@ set fillchars=vert:\|,fold:\
 
 nnoremap <space> za
 
-""" Search, replace
+" Search, replace
 
 set ignorecase
 set smartcase
@@ -368,22 +427,67 @@ nnoremap /<cr> :noh<cr>
 nnoremap - :%s///g<left><left><left>
 nnoremap _ :%s///g<left><left><left><c-r><c-w><right>
 
-""" Concealing
+" Concealing
 
 set conceallevel=0
 
-""" Tabbing, whitespace, indenting
+" Tabbing, whitespace, indenting
 
 set expandtab
 set shiftwidth=2
 set tabstop=2
 
-" Show whitespace characters
-" The following is a line with a tab, trailing whitespace and a nbsp.
-" 	This was the tab, here is the nbsp:  And here is some whitespace:    
-" Note: vim-indentguides tends to mess with the listchars.
-set listchars=tab:+-,nbsp:·,trail:·
+" `listchars` handling (to visualize whitespaces and continuing lines)
+
 set list
+
+" Note: Since I use the `listchars` to show indent guides, I need to synchronize
+" them with the `shftwidth`. I have to reset the full `listchars` option
+" appropriately each time. That's why the below looks somewhat complicated.
+
+" As a test, the following is a line with a tab, trailing whitespace and a nbsp.
+" 	This was the tab, here is the nbsp:  And here is some whitespace:    
+
+let g:constant_listchars = {
+\ 'tab':   '▏·',
+\ 'nbsp':  '·',
+\ 'trail': '·',
+\ 'precedes': '…',
+\ 'extends': '…'}
+
+" Backwards compatible way of accessing the shiftwidth, from `:help
+" shiftwidth`/`builtin.txt`, slightly modified
+if exists('*shiftwidth')
+  function s:shiftwidth()
+    return shiftwidth()
+  endfunction
+else
+  function s:shiftwidth()
+    if &shiftwidth == 0
+      return &tabstop
+    else
+      return &shiftwidth
+    endif
+  endfunction
+endif
+
+" Adjusts the `leadmultispace` `listchars` to the `shiftwidth`
+function UpdateListchars()
+  let &listchars = ''
+  for [name, str] in items(g:constant_listchars)
+    let &listchars .= name . ':' . str . ','
+  endfor
+  let &listchars .= 'leadmultispace:▏' . repeat('\x20', shiftwidth() - 1)
+endfunction
+
+" Trigger `UpdateListchars` at the appropriate times
+augroup MyOptionUpdaters " Not sure about this group name
+  autocmd!
+  autocmd OptionSet shiftwidth call UpdateListchars()
+  " Not sure if the below is necessary
+  autocmd BufWinEnter * call UpdateListchars()
+augroup END
+
 
 " Enable spell checking
 "set spell spelllang=en_us
@@ -404,112 +508,115 @@ autocmd FileType plaintex,context,tex,bib set conceallevel=0
 set mouse=a
 set mousemodel=popup_setpos " I might want to configure a menu for this.
 
+" Don't scroll further horizontally than the cursor position (default anyway)
+set sidescroll=1
+
 " Remap arrow keys to do scrolling – has the added advantage of avoiding bad
 " cursor movement habits.
-map <up> <c-y>
-map <down> <c-e>
-map <left> <nop>
-map <right> <nop>
+noremap <up> <c-y>
+noremap <down> <c-e>
+noremap <left> z<left>
+noremap <right> z<right>
 
 " Weird looking scroll wheel mapping.
 " Here's a corresponding GitHub issue:
 " https://github.com/neovim/neovim/issues/6211
-map <ScrollWheelUp> <c-y>
-map <s-ScrollWheelUp> <c-y>
-map <c-ScrollWheelUp> <c-y>
-map <ScrollWheelDown> <c-e>
-map <s-ScrollWheelDown> <c-e>
-map <c-ScrollWheelDown> <c-e>
-map <ScrollWheelLeft> <nop>
-map <s-ScrollWheelLeft> <nop>
-map <c-ScrollWheelLeft> <nop>
-map <ScrollWheelRight> <nop>
-map <s-ScrollWheelRight> <nop>
-map <c-ScrollWheelRight> <nop>
-map <2-ScrollWheelUp> <c-y>
-map <s-2-ScrollWheelUp> <c-y>
-map <c-2-ScrollWheelUp> <c-y>
-map <2-ScrollWheelDown> <c-e>
-map <s-2-ScrollWheelDown> <c-e>
-map <c-2-ScrollWheelDown> <c-e>
-map <2-ScrollWheelLeft> <nop>
-map <s-2-ScrollWheelLeft> <nop>
-map <c-2-ScrollWheelLeft> <nop>
-map <2-ScrollWheelRight> <nop>
-map <s-2-ScrollWheelRight> <nop>
-map <c-2-ScrollWheelRight> <nop>
-map <3-ScrollWheelUp> <c-y>
-map <s-3-ScrollWheelUp> <c-y>
-map <c-3-ScrollWheelUp> <c-y>
-map <3-ScrollWheelDown> <c-e>
-map <s-3-ScrollWheelDown> <c-e>
-map <c-3-ScrollWheelDown> <c-e>
-map <3-ScrollWheelLeft> <nop>
-map <s-3-ScrollWheelLeft> <nop>
-map <c-3-ScrollWheelLeft> <nop>
-map <3-ScrollWheelRight> <nop>
-map <s-3-ScrollWheelRight> <nop>
-map <c-3-ScrollWheelRight> <nop>
-map <4-ScrollWheelUp> <c-y>
-map <s-4-ScrollWheelUp> <c-y>
-map <c-4-ScrollWheelUp> <c-y>
-map <4-ScrollWheelDown> <c-e>
-map <s-4-ScrollWheelDown> <c-e>
-map <c-4-ScrollWheelDown> <c-e>
-map <4-ScrollWheelLeft> <nop>
-map <s-4-ScrollWheelLeft> <nop>
-map <c-4-ScrollWheelLeft> <nop>
-map <4-ScrollWheelRight> <nop>
-map <s-4-ScrollWheelRight> <nop>
-map <c-4-ScrollWheelRight> <nop>
-imap <ScrollWheelUp> <c-x><c-y>
-imap <s-ScrollWheelUp> <c-x><c-y>
-imap <c-ScrollWheelUp> <c-x><c-y>
-imap <ScrollWheelDown> <c-x><c-e>
-imap <s-ScrollWheelDown> <c-x><c-e>
-imap <c-ScrollWheelDown> <c-x><c-e>
-imap <ScrollWheelLeft> <nop>
-imap <s-ScrollWheelLeft> <nop>
-imap <c-ScrollWheelLeft> <nop>
-imap <ScrollWheelRight> <nop>
-imap <s-ScrollWheelRight> <nop>
-imap <c-ScrollWheelRight> <nop>
-imap <2-ScrollWheelUp> <c-x><c-y>
-imap <s-2-ScrollWheelUp> <c-x><c-y>
-imap <c-2-ScrollWheelUp> <c-x><c-y>
-imap <2-ScrollWheelDown> <c-x><c-e>
-imap <s-2-ScrollWheelDown> <c-x><c-e>
-imap <c-2-ScrollWheelDown> <c-x><c-e>
-imap <2-ScrollWheelLeft> <nop>
-imap <s-2-ScrollWheelLeft> <nop>
-imap <c-2-ScrollWheelLeft> <nop>
-imap <2-ScrollWheelRight> <nop>
-imap <s-2-ScrollWheelRight> <nop>
-imap <c-2-ScrollWheelRight> <nop>
-imap <3-ScrollWheelUp> <c-x><c-y>
-imap <s-3-ScrollWheelUp> <c-x><c-y>
-imap <c-3-ScrollWheelUp> <c-x><c-y>
-imap <3-ScrollWheelDown> <c-x><c-e>
-imap <s-3-ScrollWheelDown> <c-x><c-e>
-imap <c-3-ScrollWheelDown> <c-x><c-e>
-imap <3-ScrollWheelLeft> <nop>
-imap <s-3-ScrollWheelLeft> <nop>
-imap <c-3-ScrollWheelLeft> <nop>
-imap <3-ScrollWheelRight> <nop>
-imap <s-3-ScrollWheelRight> <nop>
-imap <c-3-ScrollWheelRight> <nop>
-imap <4-ScrollWheelUp> <c-x><c-y>
-imap <s-4-ScrollWheelUp> <c-x><c-y>
-imap <c-4-ScrollWheelUp> <c-x><c-y>
-imap <4-ScrollWheelDown> <c-x><c-e>
-imap <s-4-ScrollWheelDown> <c-x><c-e>
-imap <c-4-ScrollWheelDown> <c-x><c-e>
-imap <4-ScrollWheelLeft> <nop>
-imap <s-4-ScrollWheelLeft> <nop>
-imap <c-4-ScrollWheelLeft> <nop>
-imap <4-ScrollWheelRight> <nop>
-imap <s-4-ScrollWheelRight> <nop>
-imap <c-4-ScrollWheelRight> <nop>
+noremap <ScrollWheelUp> <c-y>
+noremap <s-ScrollWheelUp> <c-y>
+noremap <c-ScrollWheelUp> <c-y>
+noremap <ScrollWheelDown> <c-e>
+noremap <s-ScrollWheelDown> <c-e>
+noremap <c-ScrollWheelDown> <c-e>
+noremap <ScrollWheelLeft> z<left>
+noremap <s-ScrollWheelLeft> z<left>
+noremap <c-ScrollWheelLeft> z<left>
+noremap <ScrollWheelRight> z<right>
+noremap <s-ScrollWheelRight> z<left>
+noremap <c-ScrollWheelRight> z<left>
+noremap <2-ScrollWheelUp> <c-y>
+noremap <s-2-ScrollWheelUp> <c-y>
+noremap <c-2-ScrollWheelUp> <c-y>
+noremap <2-ScrollWheelDown> <c-e>
+noremap <s-2-ScrollWheelDown> <c-e>
+noremap <c-2-ScrollWheelDown> <c-e>
+noremap <2-ScrollWheelLeft> z<left>
+noremap <s-2-ScrollWheelLeft> z<left>
+noremap <c-2-ScrollWheelLeft> z<left>
+noremap <2-ScrollWheelRight> z<left>
+noremap <s-2-ScrollWheelRight> z<left>
+noremap <c-2-ScrollWheelRight> z<left>
+noremap <3-ScrollWheelUp> <c-y>
+noremap <s-3-ScrollWheelUp> <c-y>
+noremap <c-3-ScrollWheelUp> <c-y>
+noremap <3-ScrollWheelDown> <c-e>
+noremap <s-3-ScrollWheelDown> <c-e>
+noremap <c-3-ScrollWheelDown> <c-e>
+noremap <3-ScrollWheelLeft> z<left>
+noremap <s-3-ScrollWheelLeft> z<left>
+noremap <c-3-ScrollWheelLeft> z<left>
+noremap <3-ScrollWheelRight> z<left>
+noremap <s-3-ScrollWheelRight> z<left>
+noremap <c-3-ScrollWheelRight> z<left>
+noremap <4-ScrollWheelUp> <c-y>
+noremap <s-4-ScrollWheelUp> <c-y>
+noremap <c-4-ScrollWheelUp> <c-y>
+noremap <4-ScrollWheelDown> <c-e>
+noremap <s-4-ScrollWheelDown> <c-e>
+noremap <c-4-ScrollWheelDown> <c-e>
+noremap <4-ScrollWheelLeft> z<left>
+noremap <s-4-ScrollWheelLeft> z<left>
+noremap <c-4-ScrollWheelLeft> z<left>
+noremap <4-ScrollWheelRight> z<left>
+noremap <s-4-ScrollWheelRight> z<left>
+noremap <c-4-ScrollWheelRight> z<left>
+inoremap <ScrollWheelUp> <c-x><c-y>
+inoremap <s-ScrollWheelUp> <c-x><c-y>
+inoremap <c-ScrollWheelUp> <c-x><c-y>
+inoremap <ScrollWheelDown> <c-x><c-e>
+inoremap <s-ScrollWheelDown> <c-x><c-e>
+inoremap <c-ScrollWheelDown> <c-x><c-e>
+inoremap <ScrollWheelLeft> <c-o>z<left>
+inoremap <s-ScrollWheelLeft> <c-o>z<left>
+inoremap <c-ScrollWheelLeft> <c-o>z<left>
+inoremap <ScrollWheelRight> <c-o>z<right>
+inoremap <s-ScrollWheelRight> <c-o>z<right>
+inoremap <c-ScrollWheelRight> <c-o>z<right>
+inoremap <2-ScrollWheelUp> <c-x><c-y>
+inoremap <s-2-ScrollWheelUp> <c-x><c-y>
+inoremap <c-2-ScrollWheelUp> <c-x><c-y>
+inoremap <2-ScrollWheelDown> <c-x><c-e>
+inoremap <s-2-ScrollWheelDown> <c-x><c-e>
+inoremap <c-2-ScrollWheelDown> <c-x><c-e>
+inoremap <2-ScrollWheelLeft> <c-o>z<left>
+inoremap <s-2-ScrollWheelLeft> <c-o>z<left>
+inoremap <c-2-ScrollWheelLeft> <c-o>z<left>
+inoremap <2-ScrollWheelRight> <c-o>z<right>
+inoremap <s-2-ScrollWheelRight> <c-o>z<right>
+inoremap <c-2-ScrollWheelRight> <c-o>z<right>
+inoremap <3-ScrollWheelUp> <c-x><c-y>
+inoremap <s-3-ScrollWheelUp> <c-x><c-y>
+inoremap <c-3-ScrollWheelUp> <c-x><c-y>
+inoremap <3-ScrollWheelDown> <c-x><c-e>
+inoremap <s-3-ScrollWheelDown> <c-x><c-e>
+inoremap <c-3-ScrollWheelDown> <c-x><c-e>
+inoremap <3-ScrollWheelLeft> <c-o>z<left>
+inoremap <s-3-ScrollWheelLeft> <c-o>z<left>
+inoremap <c-3-ScrollWheelLeft> <c-o>z<left>
+inoremap <3-ScrollWheelRight> <c-o>z<right>
+inoremap <s-3-ScrollWheelRight> <c-o>z<right>
+inoremap <c-3-ScrollWheelRight> <c-o>z<right>
+inoremap <4-ScrollWheelUp> <c-x><c-y>
+inoremap <s-4-ScrollWheelUp> <c-x><c-y>
+inoremap <c-4-ScrollWheelUp> <c-x><c-y>
+inoremap <4-ScrollWheelDown> <c-x><c-e>
+inoremap <s-4-ScrollWheelDown> <c-x><c-e>
+inoremap <c-4-ScrollWheelDown> <c-x><c-e>
+inoremap <4-ScrollWheelLeft> <c-o>z<left>
+inoremap <s-4-ScrollWheelLeft> <c-o>z<left>
+inoremap <c-4-ScrollWheelLeft> <c-o>z<left>
+inoremap <4-ScrollWheelRight> <c-o>z<right>
+inoremap <s-4-ScrollWheelRight> <c-o>z<right>
+inoremap <c-4-ScrollWheelRight> <c-o>z<right>
 
 "map <ScrollWheelUp> <nop>
 "map <s-ScrollWheelUp> <nop>
@@ -560,7 +667,7 @@ imap <c-4-ScrollWheelRight> <nop>
 "map <s-4-ScrollWheelRight> <nop>
 "map <c-4-ScrollWheelRight> <nop>
 
-""" Clang-format integration
+" {{{1 Clang-format integration
 
 " TODO: ALE supports `clang-format` as a fixer, so perhaps I should use that
 " instead. This whole section is a little hacky and platform-dependent anyway.
@@ -601,11 +708,11 @@ elseif s:hostname == "lasse-mba-0"
   let g:clang_format_path = '/usr/local/opt/llvm/bin/clang-format'
 endif
 
-""" Configuration of plugins
+" {{{1 Configuration of plugins
 
 " TODO: Only configure plugins when they are present/enabled?
 
-"""" YouCompleteMe configuration
+" {{{2 YouCompleteMe configuration
 
 " Disable YCM for any non-CXX-family files.
 let g:ycm_filetype_whitelist = {'c': 1, 'cpp': 1}
@@ -631,7 +738,7 @@ noremap ? :YcmCompleter GoTo<cr> " I don't use `?` for backward search anyway.
 " if it is disabled. That way, the popup menu as used by ALE also works with the
 " tab key. That's nice, but it'd be better if it worked without YCM.
 
-"""" ALE configuration
+" {{{2 ALE configuration
 " ALE runs all available linters by default. I would like to choose my linters
 " by myself and enable them one by one here. Hence the following setting. This
 " also mitigates interference with YouCompleteMe.
@@ -666,7 +773,7 @@ let g:ale_completion_enabled = 0
 call ale#Set('python_flake8_options',
   \ '--ignore=E111,E114,E121,E128,E201,E203,E221,E222,E226,E241,E251,E261,E262,E302,E303,E305,E501,E702,E731,W391,W504')
 
-"""" Deoplete configuration
+" {{{2 Deoplete configuration
 
 " Note: Deoplete latches onto the `ale` source automatically.
 
@@ -676,18 +783,17 @@ let g:deoplete#enable_at_startup = 1
 autocmd FileType c,cpp
   \ call deoplete#custom#buffer_option('auto_complete', v:false)
 
-"""" NERDCommenter configuration
+" {{{2 NERDCommenter configuration
 
 let g:NERDCommentWholeLinesInVMode = 1
 let g:NERDCommentEmptyLines = 1
 let g:NERDCreateDefaultMappings = 0
 
-" Note: I'm mapping the arrow keys directly here. Above, they were mapped to
-" `<nop>` anyway.
-map <left> <plug>NERDCommenterUncomment
-map <right> <plug>NERDCommenterAlignBoth
+" Note: `<gt>` does not exist, instead `<char-62>` can be used
+map <lt> <plug>NERDCommenterUncomment
+map <char-62> <plug>NERDCommenterAlignBoth
 
-"""" vim-ranger configuration
+" {{{2 vim-ranger configuration
 
 let g:ranger_map_keys = 0
 let g:ranger_replace_netrw = 1
@@ -711,29 +817,18 @@ command RangerSmart call RangerSmart()
 
 nmap <c-p> :RangerSmart<cr>
 
-"""" vim-indentguides configuration
-
-let g:indentguides_spacechar = "▏"
-let g:indentguides_tabchar = "·"
-
-" I would like to disable the indent guides for tabs, but setting the above to
-" an empty string results in an error on some setups and I haven't found another
-" way yet.
-" Maybe it's in fact okay like this, that way it shows it's a tab while also
-" showing a bit of an indent guide.
-
-"""" vim-asciidoc-folding configuration
+" {{{2 vim-asciidoc-folding configuration
 
 autocmd FileType asciidoc setlocal foldmethod=expr
 
-"""" wolfram-vim configuration
+" {{{2 wolfram-vim configuration
 
 autocmd BufNewFile,BufRead *.wl set syntax=wl
 autocmd BufNewFile,BufRead *.wls set syntax=wl
 autocmd BufNewFile,BufRead *.m set syntax=wl
 autocmd BufNewFile,BufRead *.nb set syntax=wl
 
-"""" vim-fish configuration
+" {{{2 vim-fish configuration
 
 " Set up :make to use fish for syntax checking.
 autocmd FileType fish compiler fish
@@ -742,7 +837,7 @@ autocmd FileType fish setlocal textwidth=80
 " Enable folding of block structures in fish.
 autocmd FileType fish setlocal foldmethod=expr
 
-"""" vimtex configuration
+" {{{2 vimtex configuration
 
 " Don't try to use bibtex
 let g:vimtex_parser_bib_backend = 'vim'
