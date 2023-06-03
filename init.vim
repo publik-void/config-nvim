@@ -220,7 +220,7 @@ function! MyHighlights() abort
 
   if &background == "light"
     highlight LineNr                     ctermfg=15
-    "highlight CursorLineNr               ctermfg=7
+    highlight CursorLineNr               ctermfg=7
     highlight Whitespace                 ctermfg=15
     highlight NonText                    ctermfg=15
     highlight ColorColumn                ctermfg=8    ctermbg=15
@@ -871,3 +871,10 @@ let g:vimtex_format_enabled = 1
 " Don't use conceal features
 let g:vimtex_syntax_conceal_default = 0
 
+" {{{2 julia-vim configuration
+
+" Don't have the filetype plugin set the shiftwidth to 4
+let g:julia_set_indentation = 0
+
+" Don't highlight operators
+let g:julia_highlight_operators = 0
