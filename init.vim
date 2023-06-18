@@ -5,22 +5,34 @@
 
 " {{{1 General notes and todos
 
-" TODO: Think about porting this to Lua? Or should I try to remain somewhat
-" close to regular Vim? -> Maybe with the basics
-" TODO: Work through this article: https://aca.github.io/neovim_startuptime.html
-" TODO: This looks interesting as well: https://github.com/nathom/filetype.nvim
+" TODO: This looks interesting: https://github.com/nathom/filetype.nvim
+"
 " TODO: Have individual files for specific file types? E.g. set conceallevel and
 " shiftwidth for `filetype`s such as JSON, Python, TeX, …, instead of in here.
 " This may come in handy:
 " https://vi.stackexchange.com/questions/14371/why-files-in-config-nvim-after-ftplugin-are-not-taken-into-acount
-" TODO: Some parts of this file would fit neatly into smaller collections
-" representing one 'feature'. Like e.g. all LaTeX stuff could be put into a
-" small unit, that I could then enable or disable in the beginning of this file,
-" depending on something like hostname, version, availability of binaries, etc.
-" I probably don't need LaTex on a Raspberry Pi and I might not be able to use
-" some newer plugins on platforms with old nvim version, etc…
-
-" NOTE: `.` gets deprecated in favor of `..`. See `:h expr-..`
+"
+" TODO: Add either a thesaurus file or a thesaurus function for the english
+" language? (See `:h compl-thesaurus`)
+"
+" TODO: Make these `TODO` and `NOTE` admonitions be highlighted consistently
+"
+" NOTE: There are many claims that netrw is a bad and buggy piece of software
+" and should probably be rewritten entirely. However, it does more than just
+" being a file browser, which is why it's not a good idea to fully disable it.
+" However, replacing the file browsing part with another plugin makes sense.
+" The situation with netrw is unfortunate. On the one hand, it would be more
+" unix-y to separate the text editor and the file browser into two loosely
+" coupled standalone programs. On the other hand, given that this thing already
+" exists, it would be nice to make use of it as a vanilla part of Vim. Still, I
+" think the best solution for now is to just ignore it and hope that it gets
+" deprecated in favor of a better solution or something.
+"
+" NOTE: In Vimscript, `.` gets deprecated in favor of `..`. See `:h expr-..`.
+" And this also goes for assignment, i.e. `..=` instead of `.=`.
+"
+" NOTE: User-defined Vimscript functions are usually named in CamelCase to avoid
+" confusion with built-in functions.
 
 " NOTE: There is an issue with syntax highlighting that I may encounter for a
 " while when editing this file. Specifically, lua code blocks may show closing
@@ -33,6 +45,11 @@ augroup MyVimscriptLuaHighlightWorkaround
 augroup END
 
 " {{{1 Essential initializations
+
+" Helper function to convert any value to `v:false`/`v:true`
+function s:AsBool(value)
+  if a:value | return v:true | else | return v:false | endif
+endfunction
 
 " This is always set in Neovim, but doesn't hurt to set it explicitly.
 " It resets some other options in Vim, which is why it should be set early
@@ -115,28 +132,62 @@ endif
 " are created.
 let g:mapleader = "\\"
 
+" This will usually be turned on by default and may lead to problems if not.
+" I don't see why I would disable this except maybe on a very resource-limited
+" system, at which point the choice of using (Neo-)Vim may be questionable
+" anyway.
+filetype plugin indent on
+syntax enable
+
+" Set up a namespace for my user-defined functions in Lua
+if has("nvim")
+  lua my = {}
+endif
+
 " {{{1 Features and plugins
 
 " * To check for platforms or features, use `has`
 "   * e.g. to find out if it's Neovim, run `has('nvim')`
 " * Vim version resides in variable `v:version`
+"   * Neovim version lower bound can be checked with e.g. `has("nvim-0.8")`
 " * `hostname()` returns the hostname.
 " * `exists("+foo")` to check if an option exists (see `:h hidden-options`)
+" * `executable("foo")` to check if a shell command exists
 
-" NOTE: I'd like the two dictionaries below to be script-local, but then they
-" wouldn't be accessible by lua.
+" Here's a helper function to check from Vimscript if Lua has JIT compilation
+if has("nvim")
+lua << EOF
+  function my.has_jit()
+    return jit ~= nil
+  end
+EOF
+endif
+
+" NOTE: The two dictionaries below can't be accessed from Lua if they are
+" script-local. Having them be global also allows to check their status after
+" startup, so maybe it's the better choice anyway.
 
 " Feature list: used to enable/disable sections of this file
 " Values should be numbers, not `v:true`/`v:false`
 let g:my_features = {
+\ "plugin_management": has("nvim-0.8") && v:lua.my.has_jit(),
 \ "automatic_background_handling": has("nvim"),
+\ "my_dim_colorscheme": 1,
 \ "basic_editor_setup": 1,
 \ "native_filetype_plugins_config": 1,
-\ "plugin_management": has("nvim"),
-\ "my_dim_colorscheme": 1,
-\ "vim_commentary": 0,
 \ "nerdcommenter": 1,
-\ "julia_vim": 1}
+\ "vim_commentary": 0,
+\ "vim_surround": 1,
+\ "vim_repeat": 1,
+\ "vimtex": 1,
+\ "julia_vim": 1,
+\ "vim_asciidoc_folding": 1,
+\ "nvim_treesitter": has("nvim-0.9"),
+\ "nvim_lspconfig": has("nvim-0.8"),
+\ "nvim_cmp": 1 && has("nvim-0.7"),
+\ "native_autocompletion": 1,
+\ "telescope": has("nvim-0.9"),
+\ "luasnip": has("nvim-0.5")}
 
 " Plugin list: I chose to do the old "another layer of indirection" here and
 " write these out into this dictionary, so that I can separate my plugin list
@@ -156,26 +207,84 @@ let g:my_plugins = {
 \   "name": "vim-commentary",
 \   "author": "tpope",
 \   "options": {}},
+\ "vim_surround": {
+\   "name": "vim-surround",
+\   "author": "tpope",
+\   "options": {}},
+\ "vim_repeat": {
+\   "name": "vim-repeat",
+\   "author": "tpope",
+\   "options": {}},
+\ "vimtex": {
+\   "name": "vimtex",
+\   "author": "lervag",
+\   "options": {}},
 \ "julia_vim": {
 \   "name": "julia-vim",
 \   "author": "JuliaEditorSupport",
-\   "options": {"lazy": v:true, "event": "FileType julia"}}
+\   "options": {"lazy": v:true, "event": "FileType julia"}},
+\ "vim_asciidoc_folding": {
+\   "name": "vim-asciidoc-folding",
+\   "author": "matcatc",
+\   "options": {}},
+\ "nvim_treesitter": {
+\   "name": "nvim-treesitter",
+\   "author": "nvim-treesitter",
+\   "options": {"build": ":TSUpdate"}},
+\ "nvim_lspconfig": {
+\   "name": "nvim-lspconfig",
+\   "author": "neovim",
+\   "options": {"event": ["BufReadPre", "BufNewFile"]}},
+\ "nvim_cmp": {
+\   "name": "nvim-cmp",
+\   "author": "hrsh7th",
+\   "options": {
+\     "dependencies": [
+\       {"name": "cmp-buffer", "author": "hrsh7th"},
+\       {"name": "cmp-nvim-lsp", "author": "hrsh7th", "options": {
+\         "enabled": s:AsBool(g:my_features["nvim_lspconfig"])}},
+\       {"name": "cmp_luasnip", "author": "saadparwaiz1", "options": {
+\         "enabled": s:AsBool(g:my_features["luasnip"])}}]}},
+\ "telescope": {
+\   "name": "telescope.nvim",
+\   "author": "nvim-telescope",
+\   "options": {
+\     "branch": "0.1.x",
+\     "dependencies": [
+\       {"name": "plenary.nvim", "author": "nvim-lua"},
+\       {"name": "telescope-luasnip.nvim", "author": "benfowler", "options": {
+\         "enabled": s:AsBool(g:my_features["luasnip"])}}]}},
+\ "luasnip": {
+\   "name": "LuaSnip",
+\   "author": "L3MON4D3",
+\   "options": {
+\     "version": "1.*",
+"\     "build": "make install_jsregexp",
+\     "dependencies": [
+\       {"name": "friendly-snippets", "author": "rafamadriz"}]}}
 \ } " Separated this `}` to not unintentionally create a fold marker
 
 " Notes about features/plugins:
 "
 " Regarding `tpope/vim-commentary` vs. `preservim/nerdcommenter`:
 " `vim-commentary` is a nice plugin insofar as it's very small and leverages a
-" bunch of vanilla vim functionality, including operators/motions. Seems to me
+" bunch of vanilla Vim functionality, including operators/motions. Seems to me
 " like it does exactly what needs to be done, exactly how it needs to be done,
 " without a lot of bells and whistles. `nerdcommenter` has more configurable
 " behavior, e.g. how to handle empty lines, whether to comment small pieces
 " instead of whole lines out if possible, etc. Seems like both plugins are very
 " stable and here to stay, as of 2023-06.
 "
+" `lervag/vimtex`: Should not be lazily loaded because the plugin basically
+" handles that by itself already through filetype/autoload.
+" There is a language server for TeX called TexLab, but it seems to me like
+" `vimtex` is very mature, Vim-tailored, and full-fledged, providing a bunch of
+" stuff that the language server does not or can not, while the latter does not
+" add a whole lot more.
+"
 " `JuliaEditorSupport/julia-vim`: This plugin, as of 2023-06, does two things:
 " LaTeX-to-unicode substitutions and block-wise movements with `matchit`. It is
-" not a syntax or indentation plugin, as these are already included with vim.
+" not a syntax or indentation plugin, as these are already included with Vim.
 " It seems to me that the block-wise movements work without the plugin too, not
 " sure why, but if I explicitly disable them for the plugin they don't work
 " anymore. Since this plugin adds like 30ms startup time, I lazy load it if
@@ -183,6 +292,22 @@ let g:my_plugins = {
 " with `event = "FileType julia"` it's fine. Maybe I should see if there's some
 " other LaTeX-to-unicode plugin that's better than this one and always
 " available, as that's really the only functionality I seem to need from this.
+"
+" `matcatc/vim-asciidoc-folding`: As of 2023-06, it seems that Neovim (though
+" not Vim) comes with an AsciiDoc syntax file, but there's no support for folds.
+" This plugin provides an `ftplugin`-based script with a fold expression. Seems
+" like LSP support for AsciiDoc is something that's been planned but not made a
+" reality yet. Treesitter support is also something that can be found as a
+" non-checked todo in GitHub issues.
+"
+" `neovim/nvim-lspconfig`: I think, at least for now, that it makes sense to tie
+" the list of configured LSP servers together with the plugin and not to create
+" separation of the LSP server list and LSP plugins. So right now, the feature
+" `nvim_lspconfig` basically means "the plugin together with its list of
+" configured LSP servers".
+" The lazy loading events were inspired from here: https://github.com/LazyVim/
+" LazyVim/blob/86ac9989ea15b7a69bb2bdf719a9a809db5ce526/lua/lazyvim/plugins/lsp/
+" init.lua#L5 Does lazy loading it this way really improve anything, though?
 
 if g:my_features["plugin_management"] " {{{1
 
@@ -203,21 +328,36 @@ lua << EOF
   end
   vim.opt.rtp:prepend(lazypath)
 
+  -- Function to transform vim.g.my_plugins into a Lazy plugin spec
+  local function to_spec(plugin, feature)
+    local spec = {string.format("%s/%s", plugin.author, plugin.name)}
+    if feature ~= nil then
+      spec["enabled"] = vim.g.my_features[feature] ~= 0
+    end
+    if plugin.options ~= nil then
+      for key, value in pairs(plugin.options) do
+        spec[key] = value
+      end
+      if plugin.options.dependencies ~= nil then
+        spec.dependencies = {}
+        for i, dependency in ipairs(plugin.options.dependencies) do
+          table.insert(spec.dependencies, to_spec(dependency))
+        end
+      end
+    end
+    return spec
+  end
+
   -- Construct plugin spec, disable based on feature switches
   -- NOTE: I had a hard time finding a neater way of constructing tables than
   -- consecutive assignments or `insert` calls.
   local plugins = {}
   for feature, plugin in pairs(vim.g.my_plugins) do
-    local spec = {string.format("%s/%s", plugin.author, plugin.name),
-      enabled = vim.g.my_features[feature] ~= 0}
-    for key, value in pairs(plugin.options) do
-      spec[key] = value
-    end
-    table.insert(plugins, spec)
+    table.insert(plugins, to_spec(plugin, feature))
   end
 
   -- Options
-  opts = nil -- nothing for now
+  local opts = nil -- nothing for now
 
   -- Run `lazy.nvim`
   require("lazy").setup(plugins, opts)
@@ -227,135 +367,40 @@ else " has("nvim")
     I don't have one set up in init.vim"
 endif
 
-else " g:my_features["plugin_management"]
+else " g:my_features["plugin_management"] {{{1
 
   " Let's add putative plugin locations, as these can still be used without
   " plugin management.
 
-  let plugin_root_dirs = [
-\     expand("$HOME/.local/share/nvim/lazy/"),
-\     expand("$HOME/.config/nvim/plugged/")]
+  let s:plugin_root_dirs = [
+\       expand("$HOME/.local/share/nvim/lazy/"),
+\       expand("$HOME/.config/nvim/plugged/")]
 
-  let plugin_root_dirs = filter(plugin_root_dirs, "isdirectory(v:val)")
+  let s:plugin_root_dirs = filter(s:plugin_root_dirs, "isdirectory(v:val)")
+
+  function s:AddPluginDirIfExists(plugin)
+    if has_key(a:plugin, "options") &&
+\       has_key(a:plugin["options"], "dependencies")
+      for dependency in a:plugin["options"]["dependencies"]
+        call s:AddPluginDirIfExists(dependency)
+      endfor
+    endif
+
+    for plugin_root_dir in s:plugin_root_dirs
+      let plugin_dir = plugin_root_dir .. a:plugin["name"]
+      if isdirectory(plugin_dir)
+        let &runtimepath ..= "," .. plugin_dir
+        break
+      endif
+    endfor
+  endfunction
 
   for [feature, plugin] in items(g:my_plugins)
     if g:my_features[feature]
-      for plugin_root_dir in plugin_root_dirs
-        let plugin_dir = plugin_root_dir .. plugin["name"]
-        if isdirectory(plugin_dir)
-          let &runtimepath ..= "," .. plugin_dir
-          break
-        endif
-      endfor
+      call s:AddPluginDirIfExists(plugin)
     endif
   endfor
 endif " g:my_features["plugin_management"]
-
-" {{{1 vim-plug
-
-" `vim-plug` needs to be installed beforehand, I have not automated that here.
-" I chose the directory name `plugged` as suggested by the `vim-plug` readme.
-
-" TODO: What about Neovim's native plugin manager? Is it good enough to justify
-" dropping `vim-plug` at some point?
-
-"call plug#begin('$HOME/.config/nvim/plugged')
-"
-"" 2022-02: Some general thoughts on autocompletion/linting/LSP plugins: When I
-"" started using Vim seriously around 2018 or so, I was in search of this
-"" functionality, particularly in regards to C++. At that time, YouCompleteMe
-"" seemed to be the de-facto standard for this. Since then, LSP has seen wide
-"" adoption, and a lot more options have popped up. As far as I can tell, ALE was
-"" indeed a mere linting engine, while YCM didn't even implement LSP. Today, the
-"" waters have been muddied because each plugin wants to do it all now. Which
-"" sort of makes sense, since completion, linting, even syntax highlighting, and
-"" so on are relatively closely coupled functionalities, so not necessarily the
-"" kind of stuff that you absolutely want to keep modular and separate. Beyond
-"" ALE and YCM, there exist a selection of other plugins. Of these, `coc` seems
-"" to be relatively popular at the moment. It depends on Node.js, however, which
-"" is something I would be glad to avoid – perhaps without good reasons except my
-"" taste – I don't know. I am not completely sure what to make of this at the
-"" moment, but I guess for now I'll simply limit YCM to the CXX-family
-"" `filetype`s, since I get the feeling that it's still very comprehensive for
-"" those (although I also get the feeling that the other options can deliver
-"" similar power), and then try to do the rest with ALE and perhaps Deoplete
-"" (which is already being gradually replaced by `ddc`, however). Migrating away
-"" from YCM may prove beneficial in the end, because (a) I can reduce the number
-"" of (potentially interfering) plugins, (b) YCM is not that light-weight, and
-"" (c) YCM has this non-trivial post-update hook which tends to fail if things
-"" are not set up properly, making the process somewhat tedious.
-"" Another point that adds to all of this is that Neovim is in the process of
-"" enabling support for LSP natively at the moment, so who knows, perhaps I won't
-"" need any plugins for this anymore at some point.
-"" I will probably remove this whole comment block at some point in the future,
-"" but for now it serves as a reference on the current state of affairs, or at
-"" least my grasp of it, and I want to have it in the commit history.
-"
-"Plug 'dense-analysis/ale'
-"
-"Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-"
-"" YCM needs a working Python environment and Cmake to install itself.
-"" Consequently, I enable YCM only on some hosts.
-"" TODO: Separate the hostname-dependent part out and define some general on/off
-"" and config switches for plugins?
-"if hostname() == "lasse-mbp-0" || hostname() == "lasse-mba-0" || hostname() == "lasse-debian-0"
-"  Plug 'Valloric/YouCompleteMe', { 'do': 'python3 install.py --clang-completer' }
-"end
-"
-"" On alpine, use system libclang.
-"if hostname() == "lasse-alpine-env-0"
-"  Plug 'Valloric/YouCompleteMe', { 'do': 'python3 install.py --clang-completer --system-libclang' }
-"end
-"
-"Plug 'preservim/nerdcommenter'
-"
-"" Disabled for now in favor of vim-ranger
-""Plug 'ctrlpvim/ctrlp.vim' " TODO: Substitute with Telescope?
-"
-"Plug 'dag/vim-fish'
-"
-"" Seems like this is a newer and better fish syntax plugin, but at the moment I
-"" get errors when using it…
-"" TODO: Could this be because of my additional config for fish files below?
-""Plug 'khaveesh/vim-fish-syntax'
-"
-"" NOTE: There are many claims that netrw is a bad and buggy piece of software
-"" and should probably be rewritten entirely. However, it does more than just
-"" being a file browser, which is why it's not a good idea to fully disable it.
-"" However, replacing the file browsing part with another plugin makes sense.
-"" The situation with netrw is unfortunate. On the one hand, it would be more
-"" unix-y to separate the text editor and the file browser into two loosely
-"" coupled standalone programs. On the other hand, given that this thing already
-"" exists, it would be nice to make use of it as a vanilla part of vim. Still, I
-"" think the best solution for now is to just ignore it and hope that it gets
-"" deprecated in favor of a better solution or something.
-"Plug 'francoiscabrol/ranger.vim'
-"Plug 'rbgrouleff/bclose.vim' " Dependency of `ranger.vim`
-"
-"Plug 'tpope/vim-surround'
-"Plug 'tpope/vim-repeat' " Makes `.` work for `vim-surround`.
-"
-""Plug 'junegunn/goyo.vim'
-"
-"Plug 'matcatc/vim-asciidoc-folding' " I'll need this as long as the official
-"" Asciidoc syntax support does not support folding
-"
-""Plug 'https://github.com/arnoudbuzing/wolfram-vim.git' " This is only a syntax
-""" file, not a 'real' plugin
-"
-""Plug 'guns/xterm-color-table.vim'
-"
-"" If at some point I'll switch to lazy plugin loading: VimTeX should not be
-"" loaded lazily.
-"Plug 'lervag/vimtex'
-"
-"Plug 'JuliaEditorSupport/julia-vim'
-"
-"" Modification of Vim's default color scheme, using only ANSI colors
-"Plug 'jeffkreeftmeijer/vim-dim', {'branch': '1.x'}
-"
-"call plug#end()
 
 if g:my_features["automatic_background_handling"] " {{{1
 
@@ -367,7 +412,7 @@ if g:my_features["automatic_background_handling"] " {{{1
 " cases but may have to set `background` manually in some instances.
 " NOTE: Setting `background` should be done automatically by Neovim. This seems
 " to depend on some `autocmd`, so deleting all autocommands in the beginning of
-" the vimrc file (like some do) breaks it. The detection uses an OSC11 escape
+" the `.vimrc` file (like some do) breaks it. The detection uses an OSC11 escape
 " sequence, which is basically a query to the Terminal about its background
 " color.
 " NOTE: iTerm2 sends `SIGWINCH` on profile changes and Neovim has an `autocmd
@@ -423,32 +468,50 @@ if g:my_features["my_dim_colorscheme"] " {{{1
 " Use colorscheme `dim` to inherit terminal colors and extend/modify it a bit
 " See https://gist.github.com/romainl/379904f91fa40533175dfaec4c833f2f
 function! MyDimModifications() abort
+  " Use `cterm` and not `gui` highlights (default, but set explicitly anyway)
+  set notermguicolors
+
+  highlight Folded                       ctermfg=NONE ctermbg=NONE cterm=bold
   highlight StatusLine                   ctermfg=NONE ctermbg=NONE cterm=inverse
   highlight Error                        ctermfg=9    ctermbg=NONE
   highlight Todo                         ctermfg=11   ctermbg=NONE
+  highlight PmenuThumb                                ctermbg=NONE cterm=inverse
+
+  " For my color scheme family, shades of "grayed-out-ness" work as follows:
+  " Color                bg=dark bg=light
+  " Grayed out           0       7
+  " More grayed out      8       15
+  " Foreground, deepened 15      8
+  " Foreground, extreme  7       0
 
   if &background == "light"
+    highlight Comment                    ctermfg=7
     highlight LineNr                     ctermfg=15
     highlight CursorLineNr               ctermfg=7
     highlight SignColumn                 ctermfg=15   ctermbg=NONE
     highlight Whitespace                 ctermfg=15
     highlight NonText                    ctermfg=15
     highlight ColorColumn                ctermfg=8    ctermbg=15
-    highlight Folded                     ctermfg=8    ctermbg=NONE cterm=bold
     highlight StatusLineNC               ctermfg=7    ctermbg=NONE cterm=inverse
     highlight StatusLineWeak             ctermfg=NONE ctermbg=7    cterm=inverse
     highlight StatusLineNCWeak           ctermfg=7    ctermbg=15   cterm=inverse
+    highlight Pmenu                      ctermfg=NONE ctermbg=15
+    highlight PmenuSel                   ctermfg=NONE ctermbg=15   cterm=inverse
+    highlight PmenuSbar                               ctermbg=7
   else
+    highlight Comment                    ctermfg=0
     highlight LineNr                     ctermfg=8
-    highlight CursorLineNr               ctermfg=16
+    highlight CursorLineNr               ctermfg=0
     highlight SignColumn                 ctermfg=8    ctermbg=NONE
     highlight Whitespace                 ctermfg=8
     highlight NonText                    ctermfg=8
-    highlight ColorColumn                ctermfg=7    ctermbg=16
-    highlight Folded                     ctermfg=7    ctermbg=NONE cterm=bold
-    highlight StatusLineNC               ctermfg=16   ctermbg=NONE cterm=inverse
-    highlight StatusLineWeak             ctermfg=NONE ctermbg=8    cterm=inverse
-    highlight StatusLineNCWeak           ctermfg=16   ctermbg=8    cterm=inverse
+    highlight ColorColumn                ctermfg=15   ctermbg=8
+    highlight StatusLineNC               ctermfg=0    ctermbg=NONE cterm=inverse
+    highlight StatusLineWeak             ctermfg=NONE ctermbg=0    cterm=inverse
+    highlight StatusLineNCWeak           ctermfg=0    ctermbg=8    cterm=inverse
+    highlight Pmenu                      ctermfg=NONE ctermbg=8
+    highlight PmenuSel                   ctermfg=NONE ctermbg=8    cterm=inverse
+    highlight PmenuSbar                               ctermbg=0
   endif
 endfunction
 
@@ -470,15 +533,8 @@ set clipboard+=unnamedplus
 " Long lines continue left and right instead of wrapping
 set nowrap
 
-" Search wraps at top and bottom of file
-set wrapscan
-
 " Make some left/right-movements wrap to the previous/next line
 set whichwrap+=<,>,h,l,[,],~
-
-" TODO: What did I add this for?
-" I think it's a way to do fuzzy finding in vanilla Vim
-set path+=**
 
 "set lazyredraw " Disabled this on 2023-04-25 to try and see if some occasional
                 " glitches would disapper
@@ -486,18 +542,67 @@ set path+=**
 " Highlight the line the cursor is on
 set cursorline
 
-" Command line completion behavior
+" Bracket pairs matched by `%`
+set matchpairs=(:),{:},[:],<:>
+
+" Reduce key code delays
+set ttimeoutlen=20
+
+" By default, don't conceal
+set conceallevel=0
+
+" {{{2 Text format defaults (indenting, maximum width)
+
+" I want this in most cases, therefore let's set it globally. Filetype scripts,
+" modelines, etc. can be used to change it when needed.
+" For reformatting, use `gq` or `gw`. `:help gq` and `:help gw` might help.
+set textwidth=80
+
+" Use spaces as tabs and indent with a width of 2 by default
+set expandtab
+set shiftwidth=2
+set tabstop=2
+
+" {{{2 File and buffer switching
+
+" This allows basic fuzzy finding with vanilla Vim
+set path+=**
+
+" Fuzzy find with meta-/
+" The idea being that I map the native fuzzy finder `:find` here, but can
+" override this mapping when a fuzzy finding plugin is enabled
+nnoremap <m-/> :call feedkeys(":find \<c-i>\<c-p>", "t")
+
+" Switch to alternate file with backspace
+nnoremap <bs> <c-^>
+
+" {{{2 Netrw
+
+" Show a tree-style listing in netrw browser by default
+let g:netrw_liststyle=3
+
+" {{{2 Command line
+
+" Command mode completion behavior
 set wildchar=<tab>
 set wildignorecase
 set wildmode=full
 set wildoptions=fuzzy,pum,tagfile
-cnoremap <Left> <Space><BS><Left>
-cnoremap <Right> <Space><BS><Right>
+
+" If the completion menu is open in command mode, `<left>` and `<right>` select
+" entries by default. This is a hack to disable that behavior. I hope it does
+" not break other things.
+cnoremap <left> <space><bs><left>
+cnoremap <right> <space><bs><right>
 
 " Don't show mode in command line
 set noshowmode
 
-" {{{2 Status line definitions
+" When writing, show "[w]" instead of "written"
+set shortmess+=w
+
+" {{{2 Status line
+
 " I chose to not use any plugins and try to do what I want by myself.
 
 " Function to get the correct highlight
@@ -533,7 +638,7 @@ function MyStatusline() abort
   let l:statusline ..= '%l:%c%V %P' " Cursor position
 
   return statusline
-endfunction " }}}2
+endfunction
 
 " Use custom status line defined above
 set statusline=%!MyStatusline()
@@ -541,35 +646,41 @@ set statusline=%!MyStatusline()
 " Always put a status line on every window.
 set laststatus=2
 
-" Bracket pairs matched by `%`
-set matchpairs=(:),{:},[:],<:>
-
-" Maximum height of the popup menu for insert mode completion
-set pumheight=12
-
-" Reduce key code delays
-set ttimeoutlen=20
+" {{{2 Numbers and signs columns
 
 " Line Numbering
 set number
 set relativenumber
 set numberwidth=1
 
-" Switch to alternate file with backspace
-nnoremap <bs> <c-^>
+" Don't use an additional sign column ("gutter"), place signs on number columns
+set signcolumn=number
 
-" Show 81st column
-set colorcolumn=81
+" {{{2 Colorcolumn
 
-" I want this in most cases, therefore let's set it globally. Filetype scripts,
-" modelines, etc. can be used to change it when needed.
-" For reformatting, use `gq` or `gw`. `:help gq` and `:help gw` might help.
-set textwidth=80
+" Have a `colorcolumn` visualization track `textwidth` automatically
+"function UpdateColorcolumn()
+  "let &colorcolumn = &textwidth + 1
+"endfunction
+"
+"augroup MyOptionUpdaters
+  "autocmd OptionSet textwidth call UpdateColorcolumn()
+  "autocmd BufWinEnter * call UpdateColorcolumn()
+"augroup END
+
+" Turns out that I don't need all this and can just do the following:
+set colorcolumn=+1
+
+" {{{2 Moving lines around
+
+" TODO: It'd be really nice if these next two blocks of code worked with counts
+" too.
 
 " Moving lines up and down – can of course be done with `dd` and `p` as well,
 " but does not auto-indent that way, with my configuration.
-nnoremap <c-j> :move .+1<cr>==
-nnoremap <c-k> :move .-2<cr>==
+" TODO: Change all of these to use `<cmd>` so they're silent
+nnoremap <c-j> <cmd>move .+1<cr>==
+nnoremap <c-k> <cmd>move .-2<cr>==
 inoremap <c-j> <esc>:move .+1<cr>==gi
 inoremap <c-k> <esc>:move .-2<cr>==gi
 vnoremap <c-j> :move '>+1<cr>gv=gv
@@ -586,6 +697,8 @@ inoremap <c-l> <c-t>
 vnoremap <c-h> <lt>gv
 " NOTE: I'm using `<char-62>` to target the key `>` because there is no `<gt>`.
 vnoremap <c-l> <char-62>gv
+
+" {{{2 Folding
 
 " Rely on syntax highlighting to create folds
 set foldmethod=syntax
@@ -608,33 +721,24 @@ nnoremap <space> za
 " the function in the future, it should be in the commit history up to 2023-05
 " or so.
 
-" Don't use an additional sign column ("gutter"), place signs on number columns
-set signcolumn=number
-
-" When writing, show "[w]" isntead of "written"
-set shortmess+=w
-
-" Search, replace
+" {{{2 Search, replace
 set ignorecase
 set smartcase
 set incsearch
 set hlsearch
-nnoremap /<cr> :nohlsearch<cr>
+nnoremap /<cr> <cmd>nohlsearch<cr>
 nnoremap - :%s///g<left><left><left>
 nnoremap _ :%s///g<left><left><left><c-r><c-w><right>
 
-" By default, don't conceal
-set conceallevel=0
+" Search wraps at top and bottom of file
+set wrapscan
 
-" Use spaces as tabs and indent with a width of 2 by default
-set expandtab
-set shiftwidth=2
-set tabstop=2
+" {{{2 List mode
 
 " `list` mode to visualize whitespaces, continuing lines, etc.
 set list
 
-" {{{2 `listchars` handling
+" `listchars` handling
 
 " NOTE: Since I use the `listchars` to show indent guides, I need to synchronize
 " them with the `shiftwidth`. I have to reset the full `listchars` option
@@ -676,15 +780,12 @@ function UpdateListchars()
 endfunction
 
 " Trigger `UpdateListchars` at the appropriate times
-augroup MyOptionUpdaters " Not sure about this group name
+augroup MyOptionUpdaters
   autocmd OptionSet shiftwidth call UpdateListchars()
-  " Not sure if the below is necessary
   autocmd BufWinEnter * call UpdateListchars()
 augroup END
-" }}}2
 
-" Show a tree-style listing in netrw browser by default
-let g:netrw_liststyle=3
+" {{{2 Mouse and scrolling
 
 " Use arrow keys for scrolling
 noremap <up> <c-y>
@@ -692,22 +793,43 @@ noremap <down> <c-e>
 noremap <left> z<left>
 noremap <right> z<right>
 
+" Don't scroll further horizontally than the cursor position (default anyway)
+set sidescroll=1
+
 " Use mouse in all modes
 set mouse=ar
 
 " Use right-clicking to open a context menu
-set mousemodel=popup_setpos " I might want to configure a menu for this.
+set mousemodel=popup_setpos
 
-" Don't scroll further horizontally than the cursor position (default anyway)
-set sidescroll=1
+" TODO: Set up the contents of the context menu
 
-" {{{2 Scroll wheel mapping
+" Don't focus whatever window is under the mouse pointer. I chose to set it this
+" way because it doesn't seem to work anyway and because the help file says that
+" "pull down menus" become "a little goofy" to use when it's on.
+set nomousefocus
+
+" Scroll 1 line/column at a time with the mouse
+" NOTE: This shouldn't have any effect if the scroll wheel mapping below is
+" active
+set mousescroll=ver:1,hor:1
+
+" TODO: It seems like horizontal scrolling events don't make it into the
+" terminal. Check if this is the case and if there is a way to get horizontal
+" scrolling working. Alternatively, use shift key or something.
+
+" {{{3 Scroll wheel mapping
+
+" TODO: I think this isn't necessary anymore for Neovim, maybe for Vim. Think
+" about disabling this or perhaps create a "handler" function here as well…
 
 " Weird looking scroll wheel mapping.
 " Here's a corresponding GitHub issue:
 " https://github.com/neovim/neovim/issues/6211
 " NOTE: This has one limitation: Inactive windows can not be scrolled with the
-" mouse
+" mouse. `mousefocus` might help, but doesn't work on my system. Without this
+" scroll wheel mapping, scrolling of inactive windows even works with
+" `nomousefocus`.
 noremap <ScrollWheelUp> <c-y>
 noremap <s-ScrollWheelUp> <c-y>
 noremap <c-ScrollWheelUp> <c-y>
@@ -853,32 +975,150 @@ inoremap <c-4-ScrollWheelRight> <c-o>z<right>
 "map <4-ScrollWheelRight> <nop>
 "map <s-4-ScrollWheelRight> <nop>
 "map <c-4-ScrollWheelRight> <nop>
-" }}}2
+" }}}3
+
+" {{{2 Completion and Tab and Arrow keys behavior
+
+" Maximum height of the popup menu for insert mode completion
+set pumheight=6
+
+" NOTE: Using Vimscript here for portability, even though this results in
+" awkward hooks into Lua in some cases
+
+" NOTE: There are some subtleties to consider with the code below. One issue is
+" that `feedkeys` does not wait for the processing of the sent keys, and thus I
+" can not be sure than e.g. `pumvisible()` returns the correct value immediately
+" after sending keys to open the menu. Another issue is that opening the menu
+" and trying to cycle back to the very last entry with `\<c-p>` through
+" `feedkeys` does not seem to work. I suspect this has to do with some kind of
+" delay or asynchronicity that happens after opening the menu but before fully
+" populating it, but I am not sure.
+
+" NOTE: I chose to let `<tab>` select the first completion menu entry and
+" `<s-tab>` open a menu where nothing has been selected. Immediately selecting
+" the very last entry is not only hard to implement due to the issues mentioned
+" above, but probably not all that useful anyway.
+
+" NOTE: I have thought about several design choices of what to do when `<s-tab>`
+" is pressed without text under the cursor.
+" * `feedkeys("\<s-tab>", "nt")` isn't very useful because it doesn't do
+"   anything different then unmodified tab and cannot be remapped from here
+"   anyway.
+" * Deleting spaces before the cursor up to the preceding integer multiple of
+"   `shiftwidth` or the preceding non-whitespace character would be a
+"   possibility, but it's quiet close to what backspace does.
+" * So I think I'll go with opening the completion menu, because otherwise there
+"   is not way to invoke a completion menu from this function without text under
+"   the cursor.
+
+" Defined for consistent naming
+function IsNativeCompletionMenuVisible()
+  return pumvisible()
+endfunction
+
+" Opens the user, omni, or include completion menu, depending on availability
+" The first argument can be set to `0`/`v:false` to not select the first item
+function OpenNativeCompletionMenu(...) abort
+  let keys = "\<c-x>"
+  let keys ..= !empty(&completefunc) ? "\<c-u>" :
+  \ !empty(&omnifunc) ? "\<c-o>" : "\<c-i>"
+  if !get(a:, 1, v:true) | let keys ..= "\<c-p>" | endif
+  call feedkeys(keys, "n")
+endfunction
+
+function CloseNativeCompletionMenu() abort
+  call feedkeys("\<c-x>\<c-z>", "n")
+endfunction
+
+" Moves the selection in the completion menu by `offset` items
+" Undefined behavior if no completion menu is open
+function MoveSelectionInNativeCompletionMenu(offset) abort
+  echo "called with offset " .. a:offset
+  let key = a:offset >= 0 ? "\<c-n>" : "\<c-p>"
+  call feedkeys(repeat(key, abs(a:offset)), "n")
+endfunction
+
+" Functions to be overridden if and after `cmp` is loaded
+function IsCmpCompletionMenuVisible()
+  return v:false
+endfunction
+function OpenCmpCompletionMenu(...) abort
+  return
+endfunction
+function CloseCmpCompletionMenu() abort
+  return
+endfunction
+function MoveSelectionInCmpCompletionMenu(offset) abort
+  return
+endfunction
+
+function MyInsertModeTabKeyHandler(shift_pressed) abort
+  let has_cmp = get(g:, "loaded_cmp", 0)
+  if has_cmp && IsCmpCompletionMenuVisible()
+    call MoveSelectionInCmpCompletionMenu(a:shift_pressed ? -1 : 1)
+  elseif IsNativeCompletionMenuVisible()
+    call MoveSelectionInNativeCompletionMenu(a:shift_pressed ? -1 : 1)
+  else
+    let current_char = strpart(getline("."), col(".") - 2, 1)
+    " TODO: Delete this at some point in the future, when I'm more certain that
+    " this doesn't need more debugging
+    "echo "line: \"" .. getline(".") ..
+    "\ "\" col: \"" .. col(".") ..
+    "\ "\" char: \"" .. current_char .. "\""
+    if current_char != "" && current_char != " " && current_char != "	" ||
+      \ a:shift_pressed
+      if has_cmp
+        call OpenCmpCompletionMenu(!a:shift_pressed)
+      else
+        call OpenNativeCompletionMenu(!a:shift_pressed)
+      endif
+    else
+      call feedkeys("\<tab>", "nt")
+    endif
+  end
+endfunction
+
+inoremap   <tab> <cmd>call MyInsertModeTabKeyHandler(v:false)<cr>
+inoremap <s-tab> <cmd>call MyInsertModeTabKeyHandler( v:true)<cr>
+
+function MyInsertModeArrowKeyHandler(key)
+  if get(g:, "loaded_cmp", 0) && IsCmpCompletionMenuVisible()
+    call CloseCmpCompletionMenu()
+  elseif IsNativeCompletionMenuVisible()
+    call CloseNativeCompletionMenu()
+  endif
+  call feedkeys(a:key, "nt")
+endfunction
+
+inoremap    <up> <cmd>call MyInsertModeArrowKeyHandler(   "\<up>")<cr>
+inoremap  <down> <cmd>call MyInsertModeArrowKeyHandler( "\<down>")<cr>
+inoremap  <left> <cmd>call MyInsertModeArrowKeyHandler( "\<left>")<cr>
+inoremap <right> <cmd>call MyInsertModeArrowKeyHandler("\<right>")<cr>
 
 endif " g:my_features["basic_editor_setup"]
 
 if g:my_features["native_filetype_plugins_config"] " {{{1
 
-  " The filetype plugins included with (neo)vim have configuration options. This
-  " section configures some of them.
+" The filetype plugins included with (Neo-)Vim have configuration options.
+" This section configures some of them.
 
-  " TeX {{{2
-  " Default TeX flavor
-  let g:tex_flavor = 'latex'
+" TeX {{{2
+" Default TeX flavor
+let g:tex_flavor = 'latex'
 
-  " Disable concealing
-  let g:tex_conceal = ''
+" Disable concealing
+let g:tex_conceal = ''
 
-  " Julia {{{2
-  " Don't have the shiftwidth be set to 4
-  let g:julia_set_indentation = 0
+" Julia {{{2
+" Don't have the shiftwidth be set to 4
+let g:julia_set_indentation = 0
 
-  " Don't highlight operators
-  let g:julia_highlight_operators = 0
+" Don't highlight operators
+let g:julia_highlight_operators = 0
 
-  " }}}2
+" }}}2
 
-endif
+endif " g:my_features["native_filetype_plugins_config"]
 
 if g:my_features["nerdcommenter"] " {{{1
 
@@ -896,197 +1136,290 @@ vmap <char-62> <plug>NERDCommenterComment
 
 endif " g:my_features["nerdcommenter"]
 
-" {{{1 Clang-format integration
+if g:my_features["vim_asciidoc_folding"] " {{{1
 
-"" TODO: ALE supports `clang-format` as a fixer, so perhaps I should use that
-"" instead. This whole section is a little hacky and platform-dependent anyway.
-"
-"let g:clang_format_on_save = 0 " Defined by myself
-"
-"function Formatonsave()
-"  if g:clang_format_on_save == 1
-"    let l:formatdiff = 1
-"    if hostname() == "lasse-mbp-0" || hostname() == "lasse-mba-0"
-"      py3f /usr/local/opt/llvm/share/clang/clang-format.py
-"    elseif hostname() == "lasse-lubuntu-0"
-"      py3f /usr/share/clang/clang-format-10/clang-format.py
-"    endif
-"  endif
-"endfunction
-"
-"function FormatFile()
-"  let l:lines="all"
-"    if hostname() == "lasse-mbp-0" || hostname() == "lasse-mba-0"
-"      py3f /usr/local/opt/llvm/share/clang/clang-format.py
-"    elseif hostname() == "lasse-lubuntu-0"
-"      py3f /usr/share/clang/clang-format-10/clang-format.py
-"    endif
-"endfunction
-"
-"autocmd FileType c,cpp nnoremap <buffer> <c-f> :call FormatFile()<cr>
-"autocmd FileType c,cpp vnoremap <buffer> <c-f> :py3f /usr/local/opt/llvm/share/clang/clang-format.py<cr>
-"autocmd FileType c,cpp inoremap <buffer> <c-f> <c-o>:silent py3f /usr/local/opt/llvm/share/clang/clang-format.py<cr>
-"
-"autocmd BufWritePre *.h,*.hpp,*.hxx,*.c,*.cpp,*.cxx,*.C,*.cc call Formatonsave()
-"
-"" `g:clang_format_path` tells `clang-format.py` where the clang-format binary is
-"" located.
-"if hostname() == "lasse-mbp-0"
-"  let g:clang_format_path = '/usr/local/opt/llvm/bin/clang-format'
-"elseif hostname() == "lasse-mba-0"
-"  let g:clang_format_path = '/usr/local/opt/llvm/bin/clang-format'
-"endif
-
-" {{{1 Configuration of plugins
-
-"" TODO: Only configure plugins when they are present/enabled?
-"
-"" {{{2 YouCompleteMe configuration
-"
-"" Disable YCM for any non-CXX-family files.
-"let g:ycm_filetype_whitelist = {'c': 1, 'cpp': 1}
-"
-"if hostname() == "lasse-mbp-0"
-"  let g:ycm_server_python_interpreter = '/usr/local/bin/python3'
-"elseif hostname() == "lasse-mba-0"
-"  let g:ycm_server_python_interpreter = '/usr/local/bin/python3'
-"elseif hostname() == "lasse-debian-0"
-"  let g:ycm_server_python_interpreter = '/usr/bin/python3'
-"elseif hostname() == "lasse-alpine-env-0"
-"  let g:ycm_server_python_interpreter = '/usr/bin/python3'
-"endif
-"let g:ycm_error_symbol = 'E>'
-"let g:ycm_warning_symbol = 'W>'
-"let g:ycm_complete_in_comments = 1
-"let g:ycm_key_list_select_completion = ['<tab>']
-"let g:ycm_key_list_previous_completion = ['<s-tab>']
-"let g:ycm_key_list_stop_completion = ['<c-y>', '<c-e>', '<up>', '<down>']
-"noremap ? :YcmCompleter GoTo<cr> " I don't use `?` for backward search anyway.
-"
-"" NOTE that the above tab key assignments seem to happen if YCM is loaded, even
-"" if it is disabled. That way, the popup menu as used by ALE also works with the
-"" tab key. That's nice, but it'd be better if it worked without YCM.
-"
-"" {{{2 ALE configuration
-"" ALE runs all available linters by default. I would like to choose my linters
-"" by myself and enable them one by one here. Hence the following setting. This
-"" also mitigates interference with YouCompleteMe.
-"let g:ale_linters_explicit = 1
-"
-"" ALE linters to enable, by language
-"" NOTE: Doing `:ALEInfo` shows supported and enabled linters for the buffer.
-"" NOTE: For the `julia` `languageserver` linter to work, make sure the following
-"" packages are installed: `LanguageServer`, `SymbolServer`, and `StaticLint`.
-"" For ALE to start the linter, the respective Julia file needs to belong to a
-"" Julia Project with a `Project.toml` file.
-"" Also see the Julia- and LanguageServer.jl-specific source files of ALE if
-"" things should change in the future.
-"let g:ale_linters = {
-"  \ 'fish': ['fish'],
-"  \ 'sh': ['shell'],
-"  \ 'cpp': [],
-"  \ 'python': ['flake8'],
-"  \ 'julia': []} " ['languageserver']}
-"
-"let g:ale_sign_error = 'E>'
-"let g:ale_sign_warning = 'W>'
-"
-"let g:ale_echo_msg_format = '%s [%linter%% code%]'
-"
-"" Disable ALE completion. This is the default, but I set it here explicitly to
-"" emphasize that I'm using other means of completion.
-"let g:ale_completion_enabled = 0
-"
-"" Set flake8 ignore list in this vim config
-"" Could use flake8's config files alternatively
-"call ale#Set('python_flake8_options',
-"  \ '--ignore=E111,E114,E121,E128,E201,E203,E221,E222,E226,E241,E251,E261,E262,E302,E303,E305,E501,E702,E731,W391,W504')
-"
-"" {{{2 Deoplete configuration
-"
-"" NOTE: Deoplete latches onto the `ale` source automatically.
-"
-"let g:deoplete#enable_at_startup = 1
-"
-"" Disable Deoplete for CXX-family `filetype`s to let YCM take over
-"autocmd FileType c,cpp
-"  \ call deoplete#custom#buffer_option('auto_complete', v:false)
-"
-"" {{{2 vim-ranger configuration
-"
-"let g:ranger_map_keys = 0
-"let g:ranger_replace_netrw = 1
-"
-"" If the current buffer is modified, open vim-ranger in a new window, unless
-"" `hidden` is set.
-"" vim-ranger will throw the error "E37: No write since last change" if the same
-"" file as the currently open modified buffer is opened. I was not able to catch
-"" or silence the error. I think this is because vim-ranger runs asynchronously
-"" and the code of the below function just continues without waiting for the user
-"" to quit ranger.
-"function RangerSmart()
-"  if !&hidden && getbufinfo("%")[0].changed
-"    split +Ranger
-"  else
-"    Ranger
-"  end
-"endfunction
-"
-"command RangerSmart call RangerSmart()
-"
-"nmap <c-p> :RangerSmart<cr>
-"
-"" {{{2 vim-asciidoc-folding configuration
-"
+" It "may" be necessary to do this, but it looks to me like `foldmethod` is
+" `expr` already when opening an AsciiDoc file.
 "autocmd FileType asciidoc setlocal foldmethod=expr
-"
-"" {{{2 wolfram-vim configuration
-"
-"autocmd BufNewFile,BufRead *.wl set syntax=wl
-"autocmd BufNewFile,BufRead *.wls set syntax=wl
-"autocmd BufNewFile,BufRead *.m set syntax=wl
-"autocmd BufNewFile,BufRead *.nb set syntax=wl
-"
-"" {{{2 vim-fish configuration
-"
-"" Set up :make to use fish for syntax checking.
-"autocmd FileType fish compiler fish
-"" Set this to have long lines wrap inside comments.
-"autocmd FileType fish setlocal textwidth=80
-"" Enable folding of block structures in fish.
-"autocmd FileType fish setlocal foldmethod=expr
-"
-"" {{{2 vimtex configuration
-"
-"" Don't try to use bibtex
-"let g:vimtex_parser_bib_backend = 'vim'
-"
-"" Don't run document viewer automatically
-"let g:vimtex_view_enabled = 0
-"
-"" Set up latexmk compiler
-"let g:vimtex_compiler_method = 'latexmk'
-"let g:vimtex_compiler_latexmk = {
-"  \ 'build_dir' : '',
-"  \ 'callback' : 0,
-"  \ 'continuous' : 0,
-"  \ 'executable' : 'latexmk',
-"  \ 'hooks' : [],
-"  \ 'options' : [
-"  \   '-verbose',
-"  \   '-file-line-error',
-"  \   '-synctex=1',
-"  \   '-interaction=nonstopmode',
-"  \ ],
-"  \}
-"
-"" Automatically compile on write
-"" Continuous compilation may be possible with a daemon container…
-""autocmd BufWritePost *.tex execute "VimtexCompileSS"
-"
-"let g:vimtex_fold_enabled = 1
-"let g:vimtex_format_enabled = 1
-"
-"" Don't use conceal features
-"let g:vimtex_syntax_conceal_default = 0
-"
+
+endif " g:my_features["vim_asciidoc_folding"]
+
+if g:my_features["nvim_treesitter"] " {{{1
+
+lua << EOF
+require("nvim-treesitter.configs").setup{
+  ensure_installed = {"c", "lua", "vim", "vimdoc", "query"},
+  auto_install = vim.fn.executable("tree-sitter") ~= 0
+}
+EOF
+
+endif " g:my_features["nvim_treesitter"]
+
+if g:my_features["nvim_lspconfig"] " {{{1
+
+lua << EOF
+-- If the language server is not available/runnable, the plugin should output
+-- a message and otherwise essentially disable itself, I believe.
+
+-- Julia `LanguageServer.jl`
+-- As of 2023-06, `nvim-lspconfig` uses a default server command that first
+-- looks in `~/.julia/environments/nvim-lspconfig`, and if it doesn't exist or
+-- `LanguageServer.jl` isn't installed there, it uses the default environment
+-- instead.
+-- It then searches in a couple ways of descending priority for a Julia
+-- project to attach to.
+-- I could implement automatic installation of the `LanguageServer.jl` package
+-- here, but I feel like that's the kind of step I'd rather have control over,
+-- even if it means some extra setup.
+-- As is typical for Julia, it kind of takes a while to start up. I wonder if
+-- something can be done about that.
+-- I wonder whether this language server always just assumes that any Julia
+-- code it gets to see has the same version as the Julia process running the
+-- server or whether it actually respects a project's Julia version as
+-- specified in `Manifest.toml`.
+require("lspconfig").julials.setup{}
+
+-- TODO: Add `clangd`
+
+-- `efm-langserver` translates linter output into LSP
+-- First, the configure linters to use
+
+-- efm-langserver` tool: `flake8` with inline configuration
+local flake8 = {
+  lintCommand = "flake8 " ..
+    "--ignore=" ..
+      "E114," ..
+      "E121," ..
+      "E128," ..
+      "E201," ..
+      "E203," ..
+      "E221," ..
+      "E222," ..
+      "E226," ..
+      "E241," ..
+      "E251," ..
+      "E261," ..
+      "E262," ..
+      "E302," ..
+      "E303," ..
+      "E305," ..
+      "E702," ..
+      "E731," ..
+      "W391," ..
+      "W504 " ..
+    -- "--max-line-length=80" ..
+    "--indent-size=2 ",
+  lintFormats = {"%f:%l:%c: %m"}}
+
+-- efm-langserver tool: `shellcheck`
+local shellcheck = {
+  lintCommand = "shellcheck --format=gcc --external-sources",
+  lintSource = "shellcheck",
+  lintFormats = {
+    "%f:%l:%c: %trror: %m",
+    "%f:%l:%c: %tarning: %m",
+    "%f:%l:%c: %tote: %m"}}
+
+-- I tried to set up `fish --no-execute --debug=…` as a linter here but failed.
+-- This is by the way what the fish plugins for Vim like `dag/vim-fish` are
+-- doing, among other things, like e.g. leveraging `fish_indent`.
+
+require("lspconfig").efm.setup{
+  settings = {
+    rootMarkers = {".git/"},
+    languages = {
+      python = {flake8},
+      sh = {shellcheck},
+    }
+  },
+  filetypes = {"python", "sh"},
+  single_file_support = true, -- Unless `efm-langserver -v` < v0.0.38
+}
+EOF
+
+endif " g:my_features["nvim_lspconfig"]
+
+if g:my_features["vimtex"] " {{{1
+
+" Choose compiler based on availability
+let g:vimtex_compiler_method = executable("latexmk") ? "latexmk" : "tectonic"
+
+" NOTE: In the past, I had tried to set up a `latexmk` compiler in a Docker
+" container. I believe that this should in theory be perfectly possible to the
+" point of basically having a drop-in `latexmk` shell script that forwards all
+" the environment variables, dotfiles, and arguments into the container. But
+" since I'm not aware of such a thing existing, I'd have to write it myself, at
+" which point I'm probably better off just taking the plunge and installing a
+" LaTeX distribution on my system.
+
+" Parsing bibliographies for e.g. cite completion: only use `bibtex` if it is
+" available. The `"vim"` backend is apparently more robust but slower.
+let g:vimtex_parser_bib_backend = executable("bibtex") ? "bibtex" : "vim"
+
+" `:VimtexCompile`, also mapped to `<localleader>ll` by default, runs a one-shot
+" compilation, unless the compiler supports continuous mode, in which case it
+" toggles the continuous compiler process. Let's define a function here that
+" calls `:VimtexCompile` unless a compiler is running, so that either a one-shot
+" compilation is triggered unless the last one hasn't finished, or the function
+" makes sure a continuous compilation is running and starts one if not.
+function MyVimtexCompileUnlessRunning()
+  if g:loaded_vimtex && !b:vimtex.compiler.is_running()
+    VimtexCompile
+  endif
+endfunction
+
+augroup MyVimtexConfig
+  autocmd!
+
+  " NOTE: Commented this out for now, as it may be too much.
+  " Start a one-shot or continuous compilation process on in"itialization
+  "autocmd User VimtexEventInitPost call MyVimtexCompileUnlessRunning()
+
+  " For LaTeX filetypes, create an autocommand that compiles on write unless a
+  " compiler is already running (possibly in continuous mode and thus taking
+  " care of the compile-on-write already)
+  autocmd FileType tex
+  \ autocmd! MyVimtexConfig BufWritePost * call MyVimtexCompileUnlessRunning()
+
+  " When the last buffer of a LaTeX project is closed, remove auxiliary files
+  autocmd User VimtexEventQuit call vimtex#compiler#clean(0)
+augroup END
+
+" Disable viewer interface
+" NOTE: I'd need to set up a bunch of stuff to be able to use this properly. I
+" was fine using `Preview.app` and compile-on-write thus far, so let's keep it
+" simple like that for now.
+let g:vimtex_view_enabled = 0
+
+" Disable conceal features
+let g:vimtex_syntax_conceal_disable = 1
+
+endif " g:my_features["vimtex"]
+
+if g:my_features["nvim_cmp"] " {{{1
+
+lua << EOF
+  local cmp = require("cmp")
+
+  local config = {
+    -- It is recommended to manage the keymapping by oneself
+    mapping = {},
+
+    sources = {
+      -- NOTE: At the moment, as far as I can tell, when running `:CmpStatus`,
+      -- `nvim_lsp` is listed under `# unknown source names`, as long as there
+      -- is no language server active, but this changes when a language server
+      -- has been attached to, so it should be okay.
+      {name = "nvim_lsp"},
+      {name = "buffer"}}
+  }
+
+  -- Setup LuaSnip source when `luasnip` feature is enabled
+  if vim.g.my_features.luasnip ~= 0 then
+    config["snippet"] = {
+      expand = function(args)
+        require("luasnip").lsp_expand(args.body)
+      end}
+
+    table.insert(config.sources, {name = "luasnip"})
+  end
+
+  cmp.setup(config)
+
+  -- The readme files for `nvim-cmp` and `cmp-nvim-lsp` advise to add these
+  -- capabilities to the enabled language servers. The english in the
+  -- documentation is rather broken, so I'm not exactly sure what this does.
+  if vim.g.my_features["nvim_lspconfig"] then
+    local capabilities = require("cmp_nvim_lsp").default_capabilities()
+    local lspconfig = require("lspconfig")
+
+    for k, v in pairs(lspconfig.util.available_servers()) do
+      lspconfig[v].setup{capabilities = capabilities}
+    end
+  end
+
+  -- Helper functions for my custom tab key handler
+  function my.is_cmp_completion_menu_visible()
+    return cmp.visible()
+  end
+  function my.open_cmp_completion_menu(select)
+    -- TODO: respect `select`
+    return cmp.complete()
+  end
+  function my.close_cmp_completion_menu()
+    return cmp.close()
+  end
+  function my.move_selection_in_cmp_completion_menu(offset)
+    local options = {
+      behavior = cmp.SelectBehavior.Insert,
+      -- NOTE: I *think* the `count` option works as expected, but in the
+      -- documentation it says something about `count > 1` doing a page up or
+      -- down…
+      count = math.abs(offset)}
+    local func = offset <= 0 and cmp.select_prev_item or cmp.select_next_item
+    return func(options)
+  end
+
+  -- TODO: Key mappings to scroll in documentation
+EOF
+
+" Override default definitions of Vimscript helper functions and redirect to Lua
+function! IsCmpCompletionMenuVisible()
+  return v:lua.my.is_cmp_completion_menu_visible()
+endfunction
+function! OpenCmpCompletionMenu(...) abort
+  return a:0 > 0 ? v:lua.my.open_cmp_completion_menu(a:1) :
+  \ v:lua.my.open_cmp_completion_menu()
+endfunction
+function! CloseCmpCompletionMenu() abort
+  return v:lua.my.close_cmp_completion_menu()
+endfunction
+function! MoveSelectionInCmpCompletionMenu(offset) abort
+  return v:lua.my.move_selection_in_cmp_completion_menu(a:offset)
+endfunction
+
+elseif g:my_features["native_autocompletion"] " {{{1
+
+  " TODO: Open completion menu when typing in insert mode
+
+endif " g:my_features["native_autocompletion"]
+
+if g:my_features["telescope"] " {{{1
+
+lua << EOF
+  local telescope = require("telescope")
+
+  telescope.setup{
+    defaults = {
+      -- Use horizontal or vertical layout based on window size
+      layout_strategy = "flex"
+    }
+  }
+
+  -- Setup LuaSnip picker when `luasnip` feature is enabled
+  if vim.g.my_features["luasnip"] ~= 0 then
+    telescope.load_extension("luasnip")
+  end
+
+  -- Key mappings
+  local builtin = require("telescope.builtin")
+  vim.keymap.set("n", "<m-/>", builtin.find_files, {})
+  vim.keymap.set("n", "<c-_>", builtin.live_grep,  {}) -- `<c-_>` is ctrl+/
+  vim.keymap.set("n",     "?", builtin.help_tags,  {})
+EOF
+
+endif " g:my_features["telescope"]
+
+if g:my_features["luasnip"] " {{{1
+
+lua << EOF
+  -- Load VS Code style snippets from plugins
+  -- Lazy loading is recommended
+  require("luasnip.loaders.from_vscode").lazy_load()
+
+  -- Loading SnipMate style disabled for now
+  -- require("luasnip.loaders.from_snipmate").lazy_load()
+EOF
+
+endif " g:my_features["telescope"]
+
