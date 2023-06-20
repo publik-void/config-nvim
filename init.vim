@@ -184,8 +184,8 @@ let g:my_features = {
 \ "vim_asciidoc_folding": 1,
 \ "nvim_treesitter": has("nvim-0.9"),
 \ "nvim_lspconfig": has("nvim-0.8"),
-\ "nvim_cmp": 1 && has("nvim-0.7"),
-\ "native_autocompletion": 1,
+\ "nvim_cmp": has("nvim-0.7"),
+\ "autocompletion": 1,
 \ "telescope": has("nvim-0.9"),
 \ "luasnip": has("nvim-0.5")}
 
@@ -982,8 +982,25 @@ inoremap <c-4-ScrollWheelRight> <c-o>z<right>
 " Maximum height of the popup menu for insert mode completion
 set pumheight=6
 
-" NOTE: Using Vimscript here for portability, even though this results in
-" awkward hooks into Lua in some cases
+" Don't show command line messages when using the native completion menu
+set shortmess+=c
+
+" Use the popup menu for completion
+set completeopt+=menu
+
+" Show the completion menu even if there is only one match
+" (I think this makes a lot of sense as the menu basically shows suggestions –
+" why wouldn't I want to see the suggestion just because there is only one?)
+set completeopt+=menuone
+
+" When using the completion menu, show "extra information" (kind, etc., maybe?)
+set completeopt+=preview
+
+" TODO: My below code basically depends on `completeopt` having `menu` and
+" `menuone` set. Can I make it work even if these are not set?
+
+" NOTE: Using Vimscript here for portability, even though it's slow and will
+" end up hooking into Lua most of the time anyway.
 
 " NOTE: There are some subtleties to consider with the code below. One issue is
 " that `feedkeys` does not wait for the processing of the sent keys, and thus I
@@ -997,7 +1014,10 @@ set pumheight=6
 " NOTE: I chose to let `<tab>` select the first completion menu entry and
 " `<s-tab>` open a menu where nothing has been selected. Immediately selecting
 " the very last entry is not only hard to implement due to the issues mentioned
-" above, but probably not all that useful anyway.
+" above, but probably not all that useful anyway. Another option may be to
+" simply map `<s-tab>` to `<tab>` when `<tab` would open a completion menu
+" instead of actually doing a `<tab>`, but I don't see much of a use case here
+" either, since I can just press space once and use `<tab>` from there on.
 
 " NOTE: I have thought about several design choices of what to do when `<s-tab>`
 " is pressed without text under the cursor.
@@ -1008,7 +1028,7 @@ set pumheight=6
 "   `shiftwidth` or the preceding non-whitespace character would be a
 "   possibility, but it's quiet close to what backspace does.
 " * So I think I'll go with opening the completion menu, because otherwise there
-"   is not way to invoke a completion menu from this function without text under
+"   is no way to invoke a completion menu from this function without text under
 "   the cursor.
 
 " Defined for consistent naming
@@ -1022,7 +1042,12 @@ function OpenNativeCompletionMenu(...) abort
   let keys = "\<c-x>"
   let keys ..= !empty(&completefunc) ? "\<c-u>" :
   \ !empty(&omnifunc) ? "\<c-o>" : "\<c-i>"
-  if !get(a:, 1, v:true) | let keys ..= "\<c-p>" | endif
+  let select_first = get(a:, 1, v:true)
+  if &completeopt =~# "noselect"
+    if select_first | let keys ..= "\<c-n>" | endif
+  else
+    if !select_first | let keys ..= "\<c-p>" | endif
+  endif
   call feedkeys(keys, "n")
 endfunction
 
@@ -1033,7 +1058,6 @@ endfunction
 " Moves the selection in the completion menu by `offset` items
 " Undefined behavior if no completion menu is open
 function MoveSelectionInNativeCompletionMenu(offset) abort
-  echo "called with offset " .. a:offset
   let key = a:offset >= 0 ? "\<c-n>" : "\<c-p>"
   call feedkeys(repeat(key, abs(a:offset)), "n")
 endfunction
@@ -1052,6 +1076,18 @@ function MoveSelectionInCmpCompletionMenu(offset) abort
   return
 endfunction
 
+function MyCompletionMenuOpeningCriterion()
+  let current_char = strpart(getline("."), col(".") - 2, 1)
+  " TODO: Delete this debugging command at some point in the future, when I'm
+  " more certain that this doesn't need more debugging – e.g. although it
+  " doesn't seem like it, I wonder whether I should really use something like
+  " `getcursorcharpos()`. Maybe depending on `virtualedit`…
+  "echo "line: \"" .. getline(".") ..
+  "\ "\" col: \"" .. col(".") ..
+  "\ "\" char: \"" .. current_char .. "\""
+  return current_char != "" && current_char != " " && current_char != "	"
+endfunction
+
 function MyInsertModeTabKeyHandler(shift_pressed) abort
   let has_cmp = get(g:, "loaded_cmp", 0)
   if has_cmp && IsCmpCompletionMenuVisible()
@@ -1059,14 +1095,7 @@ function MyInsertModeTabKeyHandler(shift_pressed) abort
   elseif IsNativeCompletionMenuVisible()
     call MoveSelectionInNativeCompletionMenu(a:shift_pressed ? -1 : 1)
   else
-    let current_char = strpart(getline("."), col(".") - 2, 1)
-    " TODO: Delete this at some point in the future, when I'm more certain that
-    " this doesn't need more debugging
-    "echo "line: \"" .. getline(".") ..
-    "\ "\" col: \"" .. col(".") ..
-    "\ "\" char: \"" .. current_char .. "\""
-    if current_char != "" && current_char != " " && current_char != "	" ||
-      \ a:shift_pressed
+    if MyCompletionMenuOpeningCriterion() || a:shift_pressed
       if has_cmp
         call OpenCmpCompletionMenu(!a:shift_pressed)
       else
@@ -1081,10 +1110,10 @@ endfunction
 inoremap   <tab> <cmd>call MyInsertModeTabKeyHandler(v:false)<cr>
 inoremap <s-tab> <cmd>call MyInsertModeTabKeyHandler( v:true)<cr>
 
+" Close completion menu with arrow keys. This function is meant to be overridden
+" depending on features.
 function MyInsertModeArrowKeyHandler(key)
-  if get(g:, "loaded_cmp", 0) && IsCmpCompletionMenuVisible()
-    call CloseCmpCompletionMenu()
-  elseif IsNativeCompletionMenuVisible()
+  if IsNativeCompletionMenuVisible()
     call CloseNativeCompletionMenu()
   endif
   call feedkeys(a:key, "nt")
@@ -1324,6 +1353,13 @@ lua << EOF
     table.insert(config.sources, {name = "luasnip"})
   end
 
+  -- Disable autocompletion if `autocompletion` feature is disabled
+  if vim.g.my_features.autocompletion == 0 then
+    config["completion"] = {autocomplete = false}
+  end
+
+  -- I think several calls to `cmp.setup` would work just as well as
+  -- conditionally adding parts to the `config`, but whatever…
   cmp.setup(config)
 
   -- The readme files for `nvim-cmp` and `cmp-nvim-lsp` advise to add these
@@ -1378,11 +1414,86 @@ function! MoveSelectionInCmpCompletionMenu(offset) abort
   return v:lua.my.move_selection_in_cmp_completion_menu(a:offset)
 endfunction
 
-elseif g:my_features["native_autocompletion"] " {{{1
+" Override this function with a version that works with the `cmp` menu
+function! MyInsertModeArrowKeyHandler(key)
+  if IsCmpCompletionMenuVisible()
+    call CloseCmpCompletionMenu()
+  elseif IsNativeCompletionMenuVisible()
+    call CloseNativeCompletionMenu()
+  endif
+  call feedkeys(a:key, "nt")
+endfunction
 
-  " TODO: Open completion menu when typing in insert mode
+elseif g:my_features["autocompletion"] " {{{1
 
-endif " g:my_features["native_autocompletion"]
+" In this section, I tried to implement a native autocompletion mechanism that
+" turns on if `g:my_features["autocompletion"]` is on, but no completion plugin
+" is loaded.
+
+" NOTE: Should I ever wonder about this in the future: This autocompletion
+" produces a lot of messages unless `shortmess` contains `c`.
+
+" TODO: I am not experienced with the different kinds of cursor positions that
+" can be queried by Vim's functions, like the byte position vs. the charater
+" position etc. The code below may need revising to get this completely right. I
+" wonder especially if `virtualedit` makes a difference here and haven't tested
+" that at the time of writing this comment.
+
+let g:my_native_autocompletion_suppression_flag = v:false
+let g:my_native_autocompletion_curpos_tracker = [0, -1, -1, 0, 0]
+
+function! MyInsertModeArrowKeyHandler(key)
+  " TODO: The idea with this function is to always close and not re-open the
+  " menu when arrow keys are pressed. My native autocompletion code however uses
+  " the `CursorMovedI` event to open the menu, iff the cursor position has
+  " changed. Hence, we would need to update the cursor position tracker here to
+  " the position the cursor gets to after feeding the arrow key, so that the
+  " autocompletion doesn't detect a change. This is likely complicated, so
+  " instead I use this flag to suppress the menu opening while the arrow key is
+  " fed. The flag is automatically disabled in the end of the `CursorMovedI`
+  " handling function. I can't just disable it in this function after calling
+  " `feedkeys` because the processing of the keys may not happen immediately.
+  " Meanwhile, I can't be sure that `CursorMovedI` gets triggered at all after
+  " feeding an arrow key (the cursor may be in a position where it can't move
+  " any further). This means there can be cases where the flag is still enabled
+  " when autocompletion should happen. It'd be nice to not have it like this and
+  " have a consistent behavior instead, but I think I won't use this native
+  " autocompletion enough to justify spending more time on the code now. Also,
+  " there are plugins that do pretty much this (opening the native Vim
+  " completion menu automatically without tons of other bells and whistles), so
+  " resorting to one of those may be an option as well, provided the allow for
+  " the behavior I am trying to implement here.
+  let g:my_native_autocompletion_suppression_flag = v:true
+  if IsNativeCompletionMenuVisible()
+    call CloseNativeCompletionMenu()
+  endif
+  call feedkeys(a:key, "nt")
+endfunction
+
+function MyNativeAutocompletionHandler() abort
+  " No need to check whether the popup menu is already visible as `CursorMovedI`
+  " is not triggered if that's the case.
+  " TODO: I have not tested what happens if `completeopt` is configured to not
+  " show the menu.
+  if !g:my_native_autocompletion_suppression_flag
+    let curpos = getcurpos()
+    if (curpos[1] != g:my_native_autocompletion_curpos_tracker[1] ||
+    \   curpos[2] != g:my_native_autocompletion_curpos_tracker[2]) &&
+    \ MyCompletionMenuOpeningCriterion()
+      let g:my_native_autocompletion_curpos_tracker = curpos
+      call OpenNativeCompletionMenu(0)
+    endif
+  endif
+  let g:my_native_autocompletion_suppression_flag = v:false
+endfunction
+
+augroup MyNativeAutocompletion
+  autocmd InsertEnter *
+  \ let g:my_native_autocompletion_curpos_tracker = getcurpos()
+  autocmd CursorMovedI * call MyNativeAutocompletionHandler()
+augroup END
+
+endif " g:my_features["autocompletion"]
 
 if g:my_features["telescope"] " {{{1
 
