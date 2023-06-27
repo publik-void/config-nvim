@@ -40,9 +40,11 @@
 " syntax highlighting underneath…
 " See https://github.com/neovim/neovim/issues/20456
 " Treesitter does a better job, so I'll manually enable it here for now
-augroup MyVimscriptLuaHighlightWorkaround
-  autocmd FileType vim lua vim.treesitter.start()
-augroup END
+if has("nvim-0.5")
+  augroup MyVimscriptLuaHighlightWorkaround
+    autocmd FileType vim lua vim.treesitter.start()
+  augroup END
+endif
 
 " {{{1 Essential initializations
 
@@ -59,7 +61,7 @@ set nocompatible
 set shell=/bin/sh
 
 " Neovim providers
-if has("nvim")
+if has("nvim-0.5")
 lua << EOF
   -- Set the location of the Python 3 binary. `provider.txt` says setting this
   -- makes startup faster.
@@ -374,6 +376,7 @@ else " g:my_features["plugin_management"] {{{1
 
   let s:plugin_root_dirs = [
 \       expand("$HOME/.local/share/nvim/lazy/"),
+\       expand("$HOME/.config/nvim/plugins/"),
 \       expand("$HOME/.config/nvim/plugged/")]
 
   let s:plugin_root_dirs = filter(s:plugin_root_dirs, "isdirectory(v:val)")
@@ -587,7 +590,11 @@ let g:netrw_liststyle=3
 set wildchar=<tab>
 set wildignorecase
 set wildmode=full
-set wildoptions=fuzzy,pum,tagfile
+if v:version >= 900 || has("nvim-0.5") " NOTE: I'm not sure which versions
+  set wildoptions=fuzzy,pum,tagfile
+else
+  set wildoptions=pum,tagfile
+endif
 
 " If the completion menu is open in command mode, `<left>` and `<right>` select
 " entries by default. This is a hack to disable that behavior. I hope it does
@@ -654,7 +661,11 @@ set relativenumber
 set numberwidth=1
 
 " Don't use an additional sign column ("gutter"), place signs on number columns
-set signcolumn=number
+if v:version >= 900 || has("nvim-0.5") " NOTE: I'm not sure which versions
+  set signcolumn=number
+else
+  set signcolumn=auto
+endif
 
 " {{{2 Colorcolumn
 
@@ -812,7 +823,9 @@ set nomousefocus
 " Scroll 1 line/column at a time with the mouse
 " NOTE: This shouldn't have any effect if the scroll wheel mapping below is
 " active
-set mousescroll=ver:1,hor:1
+if has("nvim-0.5") " NOTE: I'm not sure which version
+  set mousescroll=ver:1,hor:1
+endif
 
 " TODO: It seems like horizontal scrolling events don't make it into the
 " terminal. Check if this is the case and if there is a way to get horizontal
@@ -1119,10 +1132,24 @@ function MyInsertModeArrowKeyHandler(key)
   call feedkeys(a:key, "nt")
 endfunction
 
-inoremap    <up> <cmd>call MyInsertModeArrowKeyHandler(   "\<up>")<cr>
-inoremap  <down> <cmd>call MyInsertModeArrowKeyHandler( "\<down>")<cr>
-inoremap  <left> <cmd>call MyInsertModeArrowKeyHandler( "\<left>")<cr>
-inoremap <right> <cmd>call MyInsertModeArrowKeyHandler("\<right>")<cr>
+if v:version > 801 " NOTE: Not sure about which version would be correct
+  inoremap    <up> <cmd>call MyInsertModeArrowKeyHandler(   "\<up>")<cr>
+  inoremap  <down> <cmd>call MyInsertModeArrowKeyHandler( "\<down>")<cr>
+  inoremap  <left> <cmd>call MyInsertModeArrowKeyHandler( "\<left>")<cr>
+  inoremap <right> <cmd>call MyInsertModeArrowKeyHandler("\<right>")<cr>
+else
+  " Escaping workaround, see
+  " https://vi.stackexchange.com/questions/33144/inserting-strings-with-plug-
+  " inside-cmd
+  inoremap    <up> <cmd>call
+  \ MyInsertModeArrowKeyHandler(   "<bslash><lt>up>")<cr>
+  inoremap  <down> <cmd>call
+  \ MyInsertModeArrowKeyHandler( "<bslash><lt>down>")<cr>
+  inoremap  <left> <cmd>call
+  \ MyInsertModeArrowKeyHandler( "<bslash><lt>left>")<cr>
+  inoremap <right> <cmd>call
+  \ MyInsertModeArrowKeyHandler("<bslash><lt>right>")<cr>
+endif
 
 endif " g:my_features["basic_editor_setup"]
 
