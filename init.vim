@@ -590,7 +590,7 @@ let g:netrw_liststyle=3
 set wildchar=<tab>
 set wildignorecase
 set wildmode=full
-if v:version >= 900 || has("nvim-0.5") " NOTE: I'm not sure which versions
+if v:version >= 900 || has("nvim-0.5") " NOTE: Versions are a guess
   set wildoptions=fuzzy,pum,tagfile
 else
   set wildoptions=pum,tagfile
@@ -661,7 +661,7 @@ set relativenumber
 set numberwidth=1
 
 " Don't use an additional sign column ("gutter"), place signs on number columns
-if v:version >= 900 || has("nvim-0.5") " NOTE: I'm not sure which versions
+if v:version >= 900 || has("nvim-0.5") " NOTE: Versions are a guess
   set signcolumn=number
 else
   set signcolumn=auto
@@ -823,7 +823,7 @@ set nomousefocus
 " Scroll 1 line/column at a time with the mouse
 " NOTE: This shouldn't have any effect if the scroll wheel mapping below is
 " active
-if has("nvim-0.5") " NOTE: I'm not sure which version
+if has("nvim-0.5") " NOTE: Version is a guess
   set mousescroll=ver:1,hor:1
 endif
 
@@ -1132,7 +1132,7 @@ function MyInsertModeArrowKeyHandler(key)
   call feedkeys(a:key, "nt")
 endfunction
 
-if v:version > 801 " NOTE: Not sure about which version would be correct
+if has("nvim-0.8") " NOTE: Version is a guess
   inoremap    <up> <cmd>call MyInsertModeArrowKeyHandler(   "\<up>")<cr>
   inoremap  <down> <cmd>call MyInsertModeArrowKeyHandler( "\<down>")<cr>
   inoremap  <left> <cmd>call MyInsertModeArrowKeyHandler( "\<left>")<cr>
