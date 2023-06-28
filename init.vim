@@ -28,9 +28,6 @@
 " think the best solution for now is to just ignore it and hope that it gets
 " deprecated in favor of a better solution or something.
 "
-" NOTE: In Vimscript, `.` gets deprecated in favor of `..`. See `:h expr-..`.
-" And this also goes for assignment, i.e. `..=` instead of `.=`.
-"
 " NOTE: User-defined Vimscript functions are usually named in CamelCase to avoid
 " confusion with built-in functions.
 
@@ -60,6 +57,21 @@ set nocompatible
 " POSIX compliance needed
 set shell=/bin/sh
 
+" In Vimscript, `.` gets deprecated in favor of `..`. See `:h expr-..`.
+" And this also goes for assignment, i.e. `..=` instead of `.=`.
+" However, really old versions only support the single dot. This is unfortunate
+" as I want (or need) to retain compatibility. Thus, let's do it with this
+" function.
+if v:version > 800 " NOTE: Version is a guess
+  function s:StrCat(x, ...)
+    let str = a:x | for x in a:000 | let str ..= x | endfor | return str
+  endfunction
+else
+  function s:StrCat(x, ...)
+    let str = a:x | for x in a:000 | let str .= x | endfor | return str
+  endfunction
+endif
+
 " Neovim providers
 if has("nvim-0.5")
 lua << EOF
@@ -86,7 +98,9 @@ EOF
   " Use CPCP for clipboard handling if available
   let s:cpcp_command = ''
   for cmd in 
-  \   [$HOME..'/.config/cross-platform-copy-paste/cpcp.sh', 'cpcp', 'cpcp.sh']
+  \   [s:StrCat($HOME, '/.config/cross-platform-copy-paste/cpcp.sh'),
+  \     'cpcp',
+  \     'cpcp.sh']
     if executable(cmd)
       let s:cpcp_command = cmd
       break
@@ -100,12 +114,12 @@ EOF
     let s:cpcp_clipboard = {
     \   'name': 'CPCPClipboard',
     \   'copy': {
-    \      '+': s:cpcp_command .. ' --base64=auto',
-    \      '*': s:cpcp_command .. ' --base64=auto',
+    \      '+': s:StrCat(s:cpcp_command, ' --base64=auto'),
+    \      '*': s:StrCat(s:cpcp_command, ' --base64=auto'),
     \    },
     \   'paste': {
-    \      '+': s:cpcp_command .. ' --base64=auto paste',
-    \      '*': s:cpcp_command .. ' --base64=auto paste',
+    \      '+': s:StrCat(s:cpcp_command, ' --base64=auto paste'),
+    \      '*': s:StrCat(s:cpcp_command, ' --base64=auto paste'),
     \   },
     \   'cache_enabled': 1,
     \ }
@@ -172,7 +186,7 @@ endif
 " Feature list: used to enable/disable sections of this file
 " Values should be numbers, not `v:true`/`v:false`
 let g:my_features = {
-\ "plugin_management": 0 && has("nvim-0.8") && v:lua.my.has_jit(),
+\ "plugin_management": has("nvim-0.8") && v:lua.my.has_jit(),
 \ "automatic_background_handling": has("nvim"),
 \ "my_dim_colorscheme": 1,
 \ "basic_editor_setup": 1,
@@ -261,7 +275,6 @@ let g:my_plugins = {
 \   "author": "L3MON4D3",
 \   "options": {
 \     "version": "1.*",
-"\     "build": "make install_jsregexp",
 \     "dependencies": [
 \       {"name": "friendly-snippets", "author": "rafamadriz"}]}}
 \ } " Separated this `}` to not unintentionally create a fold marker
@@ -310,6 +323,10 @@ let g:my_plugins = {
 " The lazy loading events were inspired from here: https://github.com/LazyVim/
 " LazyVim/blob/86ac9989ea15b7a69bb2bdf719a9a809db5ce526/lua/lazyvim/plugins/lsp/
 " init.lua#L5 Does lazy loading it this way really improve anything, though?
+"
+" `L3MON4D3/LuaSnip`: There is this optional post-install/-update step `make
+" install_jsregexp` which I have omitted for now, but may want to look into at
+" some point.
 
 if g:my_features["plugin_management"] " {{{1
 
@@ -374,12 +391,16 @@ else " g:my_features["plugin_management"] {{{1
   " Let's add putative plugin locations, as these can still be used without
   " plugin management.
 
-  let s:config_dir = has("nvim") ? stdpath("config") :
-  \ has("win32") || has("win64") ? expand("$HOME/vimfiles") :
-  \ expand("$HOME/.vim")
+  let s:config_dir = has("nvim-0.3") ? stdpath("config") :
+  \ has("nvim") ? (
+  \   has("win32") || has("win64") ? expand("$HOME/AppData/Local/nvim") :
+  \   expand("$HOME/.config/nvim")) : (
+  \   has("win32") || has("win64") ? expand("$HOME/vimfiles") :
+  \   expand("$HOME/.vim"))
 
   let s:my_plugins_dir_basename = "plugins"
-  let s:my_plugins_dir = s:config_dir .. "/" .. s:my_plugins_dir_basename .. "/"
+  let s:my_plugins_dir =
+  \ s:StrCat(s:config_dir, "/", s:my_plugins_dir_basename, "/")
 
   let s:plugin_root_dirs = [
   \ s:my_plugins_dir,
@@ -396,9 +417,9 @@ else " g:my_features["plugin_management"] {{{1
     endif
 
     for plugin_root_dir in s:plugin_root_dirs
-      let plugin_dir = plugin_root_dir .. a:plugin["name"]
+      let plugin_dir = s:StrCat(plugin_root_dir, a:plugin["name"])
       if isdirectory(plugin_dir)
-        let &runtimepath ..= "," .. plugin_dir
+        let &runtimepath = s:StrCat(&runtimepath, ",", plugin_dir)
         break
       endif
     endfor
@@ -419,11 +440,11 @@ else " g:my_features["plugin_management"] {{{1
   " package support and rely on the above `runtimepath`-modifying code here.
 
   function MyNativeSinglePluginInstall(plugin)
-    let name = a:plugin["author"] .. "/" .. a:plugin["name"]
+    let name = s:StrCat(a:plugin["author"], "/", a:plugin["name"])
     if (has_key(a:plugin, "options") &&
       \ has_key(a:plugin["options"], "enabled") &&
       \ !a:plugin["options"]["enabled"])
-      echo "Plugin `" .. name .. "` is disabled."
+      echo s:StrCat("Plugin `", name, "` is disabled.")
       return
     endif
 
@@ -434,23 +455,24 @@ else " g:my_features["plugin_management"] {{{1
       endfor
     endif
 
-    let path = s:my_plugins_dir .. a:plugin["name"]
+    let path = s:StrCat(s:my_plugins_dir, a:plugin["name"])
     if isdirectory(path)
-      echo "Plugin `" .. name .. "` already exists."
+      echo s:StrCat("Plugin `", name, "` already exists.")
       return
     endif
 
     let command = "git clone"
     if (has_key(a:plugin, "options") && has_key(a:plugin["options"], "branch"))
-      let command ..= " --branch " .. a:plugin["options"]["branch"]
+      let command =
+      \ s:StrCat(command, " --branch ", a:plugin["options"]["branch"])
     endif
-    let command ..= " https://github.com/" .. name .. ".git"
-    let command ..= " " .. path
+    let command = s:StrCat(command, " https://github.com/", name, ".git")
+    let command = s:StrCat(command, " ", path)
     echo system(command)
-    "echo "Plugin `" .. name .. "` git-cloned."
+    "echo s:StrCat("Plugin `", name, "` git-cloned.")
     if (has_key(a:plugin, "options") && has_key(a:plugin["options"], "build"))
-      echo "  NOTE: Build command has to be run manually: `" ..
-      \ a:plugin["options"]["build"] .. "`"
+      echo s:StrCat("  NOTE: Build command has to be run manually: `",
+      \ a:plugin["options"]["build"], "`")
     endif
   endfunction
 
@@ -463,14 +485,14 @@ else " g:my_features["plugin_management"] {{{1
         call MyNativeSinglePluginInstall(plugin)
       endif
     endfor
-    echo "`" .. s:my_plugins_dir .. "` populated."
+    echo s:StrCat("`", s:my_plugins_dir, "` populated.")
   endfunction
 
   function MyNativePluginRemove()
     if isdirectory(s:my_plugins_dir)
       call delete(s:my_plugins_dir, "rf")
     endif
-    echo "`" .. s:my_plugins_dir .. "` deleted."
+    echo s:StrCat("`", s:my_plugins_dir, "` deleted.")
   endfunction
 
   function MyNativePluginUpdate()
@@ -531,9 +553,12 @@ call AttemptBackgroundDetect()
 
 " And add it as an `autocmd`
 augroup MyBackgroundDetect
-  " NOTE: the `++nested` is needed to re-apply the color scheme in response to
-  " the `background` option's value changing
-  autocmd Signal SIGWINCH ++nested call AttemptBackgroundDetect()
+  if has("nvim-0.7")
+    " NOTE: the `++nested` is needed to re-apply the color scheme in response
+    " to the `background` option's value changing
+    autocmd Signal SIGWINCH ++nested call AttemptBackgroundDetect()
+  endif
+
   "" These are a sad workaround because SIGWINCH doesn't seem to work for me
   "autocmd CursorHold * ++nested call AttemptBackgroundDetect()
   "autocmd CursorHoldI * ++nested call AttemptBackgroundDetect()
@@ -594,7 +619,11 @@ function! MyDimModifications() abort
 endfunction
 
 augroup MyColors
-  autocmd ColorScheme dim ++nested call MyDimModifications()
+  if v:version > 800 " NOTE: Version is a guess
+    autocmd ColorScheme dim ++nested call MyDimModifications()
+  else
+    autocmd ColorScheme dim nested call MyDimModifications()
+  endif
 augroup END
 
 " Set colorscheme only after all the `background` and custom highlighting
@@ -667,8 +696,10 @@ set wildignorecase
 set wildmode=full
 if v:version >= 900 || has("nvim-0.5") " NOTE: Versions are a guess
   set wildoptions=fuzzy,pum,tagfile
-else
+elseif v:version > 800 " NOTE: Versions are a guess
   set wildoptions=pum,tagfile
+else
+  set wildoptions=tagfile
 endif
 
 " If the completion menu is open in command mode, `<left>` and `<right>` select
@@ -690,14 +721,15 @@ set shortmess+=w
 " Function to get the correct highlight
 function MyStatuslineHighlightLookup(is_focused, type) abort
   let l:highlight = "%#"
-  let l:highlight ..= a:is_focused ? "StatusLine" : "StatusLineNC"
+  let l:highlight =
+  \ s:StrCat(l:highlight, a:is_focused ? "StatusLine" : "StatusLineNC")
   if a:type == "weak"
-    let l:highlight_weak = l:highlight .. "Weak"
+    let l:highlight_weak = s:StrCat(l:highlight, "Weak")
     if hlexists(l:highlight_weak)
       let l:highlight = l:highlight_weak
     endif
   endif
-  let l:highlight ..= "#"
+  let l:highlight = s:StrCat(l:highlight, "#")
   return l:highlight
 endfunction
 
@@ -710,14 +742,21 @@ function MyStatusline() abort
     let l:is_focused = v:true
   endif
 
-  let l:statusline = '' " Initialize
-  let l:statusline ..= '%<' " Truncate from the beginning
-  let l:statusline ..= MyStatuslineHighlightLookup(l:is_focused, 'weak')
-  let l:statusline ..= '%{pathshorten(getcwd())}/%=' " Current working directory
-  let l:statusline ..= MyStatuslineHighlightLookup(l:is_focused, 'strong')
-  let l:statusline ..= '%f%=' " Current file
-  let l:statusline ..= ' [%{mode()}]%m%r%h%w%y ' " Mode, flags, and filetype
-  let l:statusline ..= '%l:%c%V %P' " Cursor position
+  let l:statusline = "" " Initialize
+  let l:statusline = s:StrCat(l:statusline,
+  \ '%<') " Truncate from the beginning
+  let l:statusline = s:StrCat(l:statusline,
+  \ MyStatuslineHighlightLookup(l:is_focused, 'weak'))
+  let l:statusline = s:StrCat(l:statusline,
+  \ '%{pathshorten(getcwd())}/%=') " Current working directory
+  let l:statusline = s:StrCat(l:statusline,
+  \ MyStatuslineHighlightLookup(l:is_focused, 'strong'))
+  let l:statusline = s:StrCat(l:statusline,
+  \ '%f%=') " Current file
+  let l:statusline = s:StrCat(l:statusline,
+  \ ' [%{mode()}]%m%r%h%w%y ') " Mode, flags, and filetype
+  let l:statusline = s:StrCat(l:statusline,
+  \ '%l:%c%V %P') " Cursor position
 
   return statusline
 endfunction
@@ -860,9 +899,10 @@ endif
 function UpdateListchars()
   let &listchars = ''
   for [name, str] in items(g:constant_listchars)
-    let &listchars ..= name . ':' . str . ','
+    let &listchars = s:StrCat(&listchars, name, ':', str, ',')
   endfor
-  let &listchars ..= 'leadmultispace:▏' . repeat('\x20', shiftwidth() - 1)
+  let &listchars =
+  \ s:StrCat(&listchars, 'leadmultispace:▏', repeat('\x20', shiftwidth() - 1))
 endfunction
 
 " Trigger `UpdateListchars` at the appropriate times
@@ -1126,13 +1166,13 @@ endfunction
 " The first argument can be set to `0`/`v:false` to not select the first item
 function OpenNativeCompletionMenu(...) abort
   let keys = "\<c-x>"
-  let keys ..= !empty(&completefunc) ? "\<c-u>" :
-  \ !empty(&omnifunc) ? "\<c-o>" : "\<c-i>"
+  let keys = s:StrCat(keys, !empty(&completefunc) ? "\<c-u>" :
+  \ !empty(&omnifunc) ? "\<c-o>" : "\<c-i>")
   let select_first = get(a:, 1, v:true)
   if &completeopt =~# "noselect"
-    if select_first | let keys ..= "\<c-n>" | endif
+    if select_first | let keys = s:StrCat(keys, "\<c-n>") | endif
   else
-    if !select_first | let keys ..= "\<c-p>" | endif
+    if !select_first | let keys = s:StrCat(keys, "\<c-p>") | endif
   endif
   call feedkeys(keys, "n")
 endfunction
@@ -1193,8 +1233,13 @@ function MyInsertModeTabKeyHandler(shift_pressed) abort
   end
 endfunction
 
-inoremap   <tab> <cmd>call MyInsertModeTabKeyHandler(v:false)<cr>
-inoremap <s-tab> <cmd>call MyInsertModeTabKeyHandler( v:true)<cr>
+if v:version > 800 " NOTE: Version is a guess
+  inoremap   <tab> <cmd>call MyInsertModeTabKeyHandler(v:false)<cr>
+  inoremap <s-tab> <cmd>call MyInsertModeTabKeyHandler( v:true)<cr>
+else
+  " TODO: For older Vim versions, I would probably need to use an <expr>
+  " mapping. See `:h map-<expr>`.
+end
 
 " Close completion menu with arrow keys. This function is meant to be overridden
 " depending on features.
@@ -1210,7 +1255,7 @@ if has("nvim-0.8") " NOTE: Version is a guess
   inoremap  <down> <cmd>call MyInsertModeArrowKeyHandler( "\<down>")<cr>
   inoremap  <left> <cmd>call MyInsertModeArrowKeyHandler( "\<left>")<cr>
   inoremap <right> <cmd>call MyInsertModeArrowKeyHandler("\<right>")<cr>
-else
+elseif v:version > 800 " NOTE: Version is a guess
   " Escaping workaround, see
   " https://vi.stackexchange.com/questions/33144/inserting-strings-with-plug-
   " inside-cmd
@@ -1222,6 +1267,9 @@ else
   \ MyInsertModeArrowKeyHandler( "<bslash><lt>left>")<cr>
   inoremap <right> <cmd>call
   \ MyInsertModeArrowKeyHandler("<bslash><lt>right>")<cr>
+else
+  " TODO: For older Vim versions, I would probably need to use an <expr>
+  " mapping. See `:h map-<expr>`.
 endif
 
 endif " g:my_features["basic_editor_setup"]
