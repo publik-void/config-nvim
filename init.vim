@@ -182,7 +182,7 @@ let g:my_features = {
 \ "vim_surround": 1,
 \ "vim_repeat": 1,
 \ "vimtex": 1,
-\ "julia_vim": 1,
+\ "julia_vim": executable("julia"),
 \ "vim_asciidoc_folding": 1,
 \ "nvim_treesitter": has("nvim-0.9"),
 \ "nvim_lspconfig": has("nvim-0.8"),
