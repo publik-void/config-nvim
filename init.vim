@@ -1122,8 +1122,12 @@ set completeopt+=menu
 " why wouldn't I want to see the suggestion just because there is only one?)
 set completeopt+=menuone
 
-" When using the completion menu, show "extra information" (kind, etc., maybe?)
+" When using the completion menu, open the preview window with extra information
+" (such as e.g. docstrings)
 set completeopt+=preview
+
+" Close the preview window when the completion is considered finished
+autocmd CompleteDone * pclose
 
 " TODO: My below code basically depends on `completeopt` having `menu` and
 " `menuone` set. Can I make it work even if these are not set?
@@ -1298,6 +1302,10 @@ let g:tex_flavor = "latex"
 
 " Disable concealing
 let g:tex_conceal = ""
+
+" Python {{{2
+" `shiftwidth` and others would otherwise be set to PEP8-conforming values
+let g:python_recommended_style = 0
 
 " Julia {{{2
 " Don't have the shiftwidth be set to 4
