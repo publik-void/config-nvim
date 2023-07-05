@@ -633,6 +633,7 @@ colorscheme dim
 endif " g:my_features["my_dim_colorscheme"]
 
 if g:my_features["basic_editor_setup"] " {{{1
+" {{{2 Miscellaneous
 
 " Use quoteplus register for clipboard
 set clipboard+=unnamedplus
@@ -1109,6 +1110,8 @@ inoremap <c-4-ScrollWheelRight> <c-o>z<right>
 set pumheight=6
 
 " Don't show command line messages when using the native completion menu
+" NOTE: Some messages may still be output on older Vim versions, e.g.
+" `Scanning included file <file>`
 set shortmess+=c
 
 " Use the popup menu for completion
@@ -1178,7 +1181,13 @@ function OpenNativeCompletionMenu(...) abort
 endfunction
 
 function CloseNativeCompletionMenu() abort
-  call feedkeys("\<c-x>\<c-z>", "n")
+  if has("nvim-0.6") || v:version >= 823
+    " These should be the correct versions. Before, `<c-x><c-z>` wasn't a
+    " feature and `<c-x>` was used to close the menu.
+    call feedkeys("\<c-x>\<c-z>", "n")
+  else
+    call feedkeys("\<c-x>", "n")
+  endif
 endfunction
 
 " Moves the selection in the completion menu by `offset` items
@@ -1231,14 +1240,15 @@ function MyInsertModeTabKeyHandler(shift_pressed) abort
       call feedkeys("\<tab>", "nt")
     endif
   end
+  return "" " For `<expr>` mappings
 endfunction
 
 if v:version > 800 " NOTE: Version is a guess
   inoremap   <tab> <cmd>call MyInsertModeTabKeyHandler(v:false)<cr>
   inoremap <s-tab> <cmd>call MyInsertModeTabKeyHandler( v:true)<cr>
 else
-  " TODO: For older Vim versions, I would probably need to use an <expr>
-  " mapping. See `:h map-<expr>`.
+  inoremap <expr>   <tab> MyInsertModeTabKeyHandler(v:false)
+  inoremap <expr> <s-tab> MyInsertModeTabKeyHandler( v:true)
 end
 
 " Close completion menu with arrow keys. This function is meant to be overridden
@@ -1248,6 +1258,7 @@ function MyInsertModeArrowKeyHandler(key)
     call CloseNativeCompletionMenu()
   endif
   call feedkeys(a:key, "nt")
+  return "" " For `<expr>` mappings
 endfunction
 
 if has("nvim-0.8") " NOTE: Version is a guess
@@ -1268,8 +1279,10 @@ elseif v:version > 800 " NOTE: Version is a guess
   inoremap <right> <cmd>call
   \ MyInsertModeArrowKeyHandler("<bslash><lt>right>")<cr>
 else
-  " TODO: For older Vim versions, I would probably need to use an <expr>
-  " mapping. See `:h map-<expr>`.
+  inoremap <expr>    <up> MyInsertModeArrowKeyHandler(   "\<up>")
+  inoremap <expr>  <down> MyInsertModeArrowKeyHandler( "\<down>")
+  inoremap <expr>  <left> MyInsertModeArrowKeyHandler( "\<left>")
+  inoremap <expr> <right> MyInsertModeArrowKeyHandler("\<right>")
 endif
 
 endif " g:my_features["basic_editor_setup"]
@@ -1281,10 +1294,10 @@ if g:my_features["native_filetype_plugins_config"] " {{{1
 
 " TeX {{{2
 " Default TeX flavor
-let g:tex_flavor = 'latex'
+let g:tex_flavor = "latex"
 
 " Disable concealing
-let g:tex_conceal = ''
+let g:tex_conceal = ""
 
 " Julia {{{2
 " Don't have the shiftwidth be set to 4
@@ -1570,6 +1583,7 @@ function! MyInsertModeArrowKeyHandler(key)
     call CloseNativeCompletionMenu()
   endif
   call feedkeys(a:key, "nt")
+  return "" " For `<expr>` mappings
 endfunction
 
 elseif g:my_features["autocompletion"] " {{{1
@@ -1616,6 +1630,7 @@ function! MyInsertModeArrowKeyHandler(key)
     call CloseNativeCompletionMenu()
   endif
   call feedkeys(a:key, "nt")
+  return "" " For `<expr>` mappings
 endfunction
 
 function MyNativeAutocompletionHandler() abort
