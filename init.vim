@@ -94,10 +94,10 @@ if has("nvim")
   let g:loaded_perl_provider = 0
 
   " Use CPCP for clipboard handling if available
-  for cmd in 
-  \   [s:StrCat($HOME, '/.config/cross-platform-copy-paste/cpcp.sh'),
-  \     'cpcp',
-  \     'cpcp.sh']
+  for cmd in
+  \   [expand("$HOME/.config/cross-platform-copy-paste/cpcp.sh"),
+  \     "cpcp",
+  \     "cpcp.sh"]
     if executable(cmd)
       let s:cpcp_command = cmd
       break
@@ -109,16 +109,16 @@ if has("nvim")
   " legacy compatibility reasons.
   if exists("s:cpcp_command")
     let s:cpcp_clipboard = {
-    \   'name': 'CPCPClipboard',
-    \   'copy': {
-    \      '+': s:StrCat(s:cpcp_command, ' --base64=auto'),
-    \      '*': s:StrCat(s:cpcp_command, ' --base64=auto'),
+    \   "name": "CPCPClipboard",
+    \   "copy": {
+    \      "+": s:StrCat(s:cpcp_command, " --base64=auto"),
+    \      "*": s:StrCat(s:cpcp_command, " --base64=auto"),
     \    },
-    \   'paste': {
-    \      '+': s:StrCat(s:cpcp_command, ' --base64=auto paste'),
-    \      '*': s:StrCat(s:cpcp_command, ' --base64=auto paste'),
+    \   "paste": {
+    \      "+": s:StrCat(s:cpcp_command, " --base64=auto paste"),
+    \      "*": s:StrCat(s:cpcp_command, " --base64=auto paste"),
     \   },
-    \   'cache_enabled': 1,
+    \   "cache_enabled": 1,
     \ }
 
     let g:clipboard = s:cpcp_clipboard
