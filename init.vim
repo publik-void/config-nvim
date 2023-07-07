@@ -28,6 +28,16 @@
 " think the best solution for now is to just ignore it and hope that it gets
 " deprecated in favor of a better solution or something.
 "
+" TODO: In several places here, I use mappings with the `<cmd>` argument, which
+" aren't supported on older Vim versions.
+" * Find out the exact versions where the functionality in question was added
+" * See if I can find a way to abstract this, so that I don't need to write
+"   version-sepcific branching in every instance of these mappings
+" * Go over all those instances and improve them
+" * Check out and utilize `<SID>`, which helps with keeping functions for
+"   mappings script-local.
+" * `<silent>` may come in handy too.
+"
 " NOTE: User-defined Vimscript functions are usually named in CamelCase to avoid
 " confusion with built-in functions.
 
@@ -804,7 +814,8 @@ set colorcolumn=+1
 
 " Moving lines up and down – can of course be done with `dd` and `p` as well,
 " but does not auto-indent that way, with my configuration.
-" TODO: Change all of these to use `<cmd>` so they're silent
+" TODO: Change all of these to use `<cmd>` so they're silent … however, <cmd> is
+" not supported on old Vim versions, so I may want to maximize compatibilty too.
 nnoremap <c-j> <cmd>move .+1<cr>==
 nnoremap <c-k> <cmd>move .-2<cr>==
 inoremap <c-j> <esc>:move .+1<cr>==gi
@@ -852,7 +863,14 @@ set ignorecase
 set smartcase
 set incsearch
 set hlsearch
-nnoremap /<cr> <cmd>nohlsearch<cr>
+" NOTE: `nohlsearch` is different from `set nohlsearch` and furthermore,
+" `nohlsearch` has no effect when invoked from an autocommand or user function,
+" due to implementation details.
+if v:version > 800 " NOTE: Version is a guess
+  nnoremap /<cr> <cmd>nohlsearch<cr>
+else
+  nnoremap <silent> /<cr> :nohlsearch<cr>
+endif
 nnoremap - :%s///g<left><left><left>
 nnoremap _ :%s///g<left><left><left><c-r><c-w><right>
 
