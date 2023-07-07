@@ -412,7 +412,9 @@ else " g:my_features["plugin_management"] {{{1
 
   let s:plugin_root_dirs = [
   \ s:my_plugins_dir,
-  \ expand("$HOME/.local/share/nvim/lazy/")]
+  \ expand("$HOME/.local/share/nvim/lazy/"),
+  \ s:StrCat(expand("$HOME/.config/nvim/"), s:my_plugins_dir_basename, "/"),
+  \ s:StrCat(expand("$HOME/.vim/"), s:my_plugins_dir_basename, "/")]
 
   let s:plugin_root_dirs = filter(s:plugin_root_dirs, "isdirectory(v:val)")
 
