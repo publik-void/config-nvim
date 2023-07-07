@@ -83,34 +83,31 @@ else
 endif
 
 " Neovim providers
-if has("nvim-0.5")
-lua << EOF
-  -- Set the location of the Python 3 binary. `provider.txt` says setting this
-  -- makes startup faster.
-  -- NOTE: Python 3 needs the `pynvim` package installed.
-  local hostname = vim.fn.hostname()
-  if hostname == "lasse-mbp-0" then
-    vim.g.python3_host_prog = "/usr/local/bin/python3"
-  elseif hostname == "lasse-mba-0" then
-    vim.g.python3_host_prog = "/usr/local/bin/python3"
-  elseif hostname == "lasse-alpine-env-0" then
-    vim.g.python3_host_prog = "/usr/bin/python3"
-  end
+if has("nvim")
+  " Set the location of the Python 3 binary. `provider.txt` says setting this
+  " makes startup faster, but I haven't tested it.
+  " NOTE: Python 3 needs the `pynvim` package installed.
+  let s:python3_host_prog_dict = {
+  \   "lasse-mbp-0": "/usr/local/bin/python3",
+  \   "lasse-mba-0": "/usr/local/bin/python3",
+  \   "lasse-alpine-env-0": "/usr/bin/python3"
+  \ }
+  if has_key(s:python3_host_prog_dict, hostname())
+    let g:python3_host_prog = s:python3_host_prog_dict[hostname()]
+  endif
 
-  -- Explicitly disable some (unneeded?) providers.
-  vim.g.loaded_python_provider = 0
-  -- vim.g.loaded_python3_provider = 0
-  vim.g.loaded_ruby_provider = 0
-  vim.g.loaded_node_provider = 0
-  vim.g.loaded_perl_provider = 0
-EOF
+  " Explicitly disable some (unneeded?) providers.
+  let g:loaded_python_provider = 0
+  "let g:loaded_python3_provider = 0
+  let g:loaded_ruby_provider = 0
+  let g:loaded_node_provider = 0
+  let g:loaded_perl_provider = 0
 
   " Use CPCP for clipboard handling if available
-  let s:cpcp_command = ''
-  for cmd in 
-  \   [s:StrCat($HOME, '/.config/cross-platform-copy-paste/cpcp.sh'),
-  \     'cpcp',
-  \     'cpcp.sh']
+  for cmd in
+  \   [expand("$HOME/.config/cross-platform-copy-paste/cpcp.sh"),
+  \     "cpcp",
+  \     "cpcp.sh"]
     if executable(cmd)
       let s:cpcp_command = cmd
       break
@@ -118,20 +115,20 @@ EOF
   endfor
 
   " The commands in the dictionary below can be written as lists of individual
-  " arguments in newer versions of Neovim, but on some of the systems I use, the
-  " Neovim version is too old.
-  if !empty(s:cpcp_command)
+  " arguments in newer versions of Neovim, but I'll keep it this way for
+  " legacy compatibility reasons.
+  if exists("s:cpcp_command")
     let s:cpcp_clipboard = {
-    \   'name': 'CPCPClipboard',
-    \   'copy': {
-    \      '+': s:StrCat(s:cpcp_command, ' --base64=auto'),
-    \      '*': s:StrCat(s:cpcp_command, ' --base64=auto'),
+    \   "name": "CPCPClipboard",
+    \   "copy": {
+    \      "+": s:StrCat(s:cpcp_command, " --base64=auto"),
+    \      "*": s:StrCat(s:cpcp_command, " --base64=auto"),
     \    },
-    \   'paste': {
-    \      '+': s:StrCat(s:cpcp_command, ' --base64=auto paste'),
-    \      '*': s:StrCat(s:cpcp_command, ' --base64=auto paste'),
+    \   "paste": {
+    \      "+": s:StrCat(s:cpcp_command, " --base64=auto paste"),
+    \      "*": s:StrCat(s:cpcp_command, " --base64=auto paste"),
     \   },
-    \   'cache_enabled': 1,
+    \   "cache_enabled": 1,
     \ }
 
     let g:clipboard = s:cpcp_clipboard
@@ -178,6 +175,7 @@ endif
 "   * Neovim version lower bound can be checked with e.g. `has("nvim-0.8")`
 " * `hostname()` returns the hostname.
 " * `exists("+foo")` to check if an option exists (see `:h hidden-options`)
+" * `exists("x:foo")` to check if a variable exists
 " * `executable("foo")` to check if a shell command exists
 
 " Here's a helper function to check from Vimscript if Lua has JIT compilation
