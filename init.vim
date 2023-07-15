@@ -177,6 +177,7 @@ endif
 " * `exists("+foo")` to check if an option exists (see `:h hidden-options`)
 " * `exists("x:foo")` to check if a variable exists
 " * `executable("foo")` to check if a shell command exists
+" * There's also some good info at `:h nvim`.
 
 " Here's a helper function to check from Vimscript if Lua has JIT compilation
 if has("nvim")
@@ -626,6 +627,12 @@ function! MyDimModifications() abort
     highlight PmenuSel                   ctermfg=NONE ctermbg=8    cterm=inverse
     highlight PmenuSbar                               ctermbg=0
   endif
+
+  if !has("nvim")
+    " NOTE: It seems the linking has to be done in this very particular way. (?)
+    highlight default clear SpecialKey
+    highlight! link SpecialKey Whitespace
+  endif
 endfunction
 
 augroup MyColors
@@ -654,8 +661,14 @@ set nowrap
 " Make some left/right-movements wrap to the previous/next line
 set whichwrap+=<,>,h,l,[,],~
 
-"set lazyredraw " Disabled this on 2023-04-25 to try and see if some occasional
-                " glitches would disapper
+" Lazy redrawing can help with slow scrolling and I have observed this myself. I
+" bet it also reduces resource consumption. I have been wondering whether some
+" glitches I got at some point came from this, but there's also
+" something about syntax highlighting only looking back a set amount of lines
+" before the current line which could have been the glitches I saw. By the way,
+" if that happens, `redraw` or Ctrl+L don't help, making clear that it's not a
+" redrawing problem.
+set lazyredraw
 
 " Highlight the line the cursor is on
 set cursorline
@@ -959,167 +972,89 @@ set nomousefocus
 " active
 if exists("+mousescroll") | set mousescroll=ver:1,hor:1 | endif
 
-" TODO: It seems like horizontal scrolling events don't make it into the
-" terminal. Check if this is the case and if there is a way to get horizontal
-" scrolling working. Alternatively, use shift key or something.
-
 " {{{3 Scroll wheel mapping
 
-" TODO: I think this isn't necessary anymore for Neovim, maybe for Vim. Think
-" about disabling this or perhaps create a "handler" function here as well…
-
-" Weird looking scroll wheel mapping.
+" This is a scroll wheel mapping to improve the inertia-based scrolling that is
+" classically present on Apple devices. This was necessary on older Neovim
+" versions (probably those without the mousescroll option). On newer Neovim
+" versions, this whole mapping isn't necessary anymore. For Vim, I don't know
+" about older versions right now, but for Vim 9, the standard mouse wheel
+" scrolling still scrolls multiple lines at once and it is not obvious how to
+" disable this except for doing a mapping. However, Vim 9 has no multi-scroll
+" events and appears to trigger the single scroll events less often than
+" necessary to produce smooth inertia-based scrolling. In fact, mapping them to
+" skip multiple lines doesn't even help, pointing to Vim executing the scrolling
+" events too slowly instead of acknowledging too few of them in the first place.
+" Turns out that this is an issue of slow redrawing because it improves when I
+" disable syntax highlighting. On Neovim, I have seen `lazyredraw` help to some
+" extent when scrolling is slow, and for Vim, at least it helps execute a
+" mapping faster that sends a single-scroll key combination multiple times.
+"
 " Here's a corresponding GitHub issue:
 " https://github.com/neovim/neovim/issues/6211
-" NOTE: This has one limitation: Inactive windows can not be scrolled with the
-" mouse. `mousefocus` might help, but doesn't work on my system. Without this
-" scroll wheel mapping, scrolling of inactive windows even works with
-" `nomousefocus`.
-noremap <ScrollWheelUp> <c-y>
-noremap <s-ScrollWheelUp> <c-y>
-noremap <c-ScrollWheelUp> <c-y>
-noremap <ScrollWheelDown> <c-e>
-noremap <s-ScrollWheelDown> <c-e>
-noremap <c-ScrollWheelDown> <c-e>
-noremap <ScrollWheelLeft> z<left>
-noremap <s-ScrollWheelLeft> z<left>
-noremap <c-ScrollWheelLeft> z<left>
-noremap <ScrollWheelRight> z<right>
-noremap <s-ScrollWheelRight> z<left>
-noremap <c-ScrollWheelRight> z<left>
-noremap <2-ScrollWheelUp> <c-y>
-noremap <s-2-ScrollWheelUp> <c-y>
-noremap <c-2-ScrollWheelUp> <c-y>
-noremap <2-ScrollWheelDown> <c-e>
-noremap <s-2-ScrollWheelDown> <c-e>
-noremap <c-2-ScrollWheelDown> <c-e>
-noremap <2-ScrollWheelLeft> z<left>
-noremap <s-2-ScrollWheelLeft> z<left>
-noremap <c-2-ScrollWheelLeft> z<left>
-noremap <2-ScrollWheelRight> z<left>
-noremap <s-2-ScrollWheelRight> z<left>
-noremap <c-2-ScrollWheelRight> z<left>
-noremap <3-ScrollWheelUp> <c-y>
-noremap <s-3-ScrollWheelUp> <c-y>
-noremap <c-3-ScrollWheelUp> <c-y>
-noremap <3-ScrollWheelDown> <c-e>
-noremap <s-3-ScrollWheelDown> <c-e>
-noremap <c-3-ScrollWheelDown> <c-e>
-noremap <3-ScrollWheelLeft> z<left>
-noremap <s-3-ScrollWheelLeft> z<left>
-noremap <c-3-ScrollWheelLeft> z<left>
-noremap <3-ScrollWheelRight> z<left>
-noremap <s-3-ScrollWheelRight> z<left>
-noremap <c-3-ScrollWheelRight> z<left>
-noremap <4-ScrollWheelUp> <c-y>
-noremap <s-4-ScrollWheelUp> <c-y>
-noremap <c-4-ScrollWheelUp> <c-y>
-noremap <4-ScrollWheelDown> <c-e>
-noremap <s-4-ScrollWheelDown> <c-e>
-noremap <c-4-ScrollWheelDown> <c-e>
-noremap <4-ScrollWheelLeft> z<left>
-noremap <s-4-ScrollWheelLeft> z<left>
-noremap <c-4-ScrollWheelLeft> z<left>
-noremap <4-ScrollWheelRight> z<left>
-noremap <s-4-ScrollWheelRight> z<left>
-noremap <c-4-ScrollWheelRight> z<left>
-inoremap <ScrollWheelUp> <c-x><c-y>
-inoremap <s-ScrollWheelUp> <c-x><c-y>
-inoremap <c-ScrollWheelUp> <c-x><c-y>
-inoremap <ScrollWheelDown> <c-x><c-e>
-inoremap <s-ScrollWheelDown> <c-x><c-e>
-inoremap <c-ScrollWheelDown> <c-x><c-e>
-inoremap <ScrollWheelLeft> <c-o>z<left>
-inoremap <s-ScrollWheelLeft> <c-o>z<left>
-inoremap <c-ScrollWheelLeft> <c-o>z<left>
-inoremap <ScrollWheelRight> <c-o>z<right>
-inoremap <s-ScrollWheelRight> <c-o>z<right>
-inoremap <c-ScrollWheelRight> <c-o>z<right>
-inoremap <2-ScrollWheelUp> <c-x><c-y>
-inoremap <s-2-ScrollWheelUp> <c-x><c-y>
-inoremap <c-2-ScrollWheelUp> <c-x><c-y>
-inoremap <2-ScrollWheelDown> <c-x><c-e>
-inoremap <s-2-ScrollWheelDown> <c-x><c-e>
-inoremap <c-2-ScrollWheelDown> <c-x><c-e>
-inoremap <2-ScrollWheelLeft> <c-o>z<left>
-inoremap <s-2-ScrollWheelLeft> <c-o>z<left>
-inoremap <c-2-ScrollWheelLeft> <c-o>z<left>
-inoremap <2-ScrollWheelRight> <c-o>z<right>
-inoremap <s-2-ScrollWheelRight> <c-o>z<right>
-inoremap <c-2-ScrollWheelRight> <c-o>z<right>
-inoremap <3-ScrollWheelUp> <c-x><c-y>
-inoremap <s-3-ScrollWheelUp> <c-x><c-y>
-inoremap <c-3-ScrollWheelUp> <c-x><c-y>
-inoremap <3-ScrollWheelDown> <c-x><c-e>
-inoremap <s-3-ScrollWheelDown> <c-x><c-e>
-inoremap <c-3-ScrollWheelDown> <c-x><c-e>
-inoremap <3-ScrollWheelLeft> <c-o>z<left>
-inoremap <s-3-ScrollWheelLeft> <c-o>z<left>
-inoremap <c-3-ScrollWheelLeft> <c-o>z<left>
-inoremap <3-ScrollWheelRight> <c-o>z<right>
-inoremap <s-3-ScrollWheelRight> <c-o>z<right>
-inoremap <c-3-ScrollWheelRight> <c-o>z<right>
-inoremap <4-ScrollWheelUp> <c-x><c-y>
-inoremap <s-4-ScrollWheelUp> <c-x><c-y>
-inoremap <c-4-ScrollWheelUp> <c-x><c-y>
-inoremap <4-ScrollWheelDown> <c-x><c-e>
-inoremap <s-4-ScrollWheelDown> <c-x><c-e>
-inoremap <c-4-ScrollWheelDown> <c-x><c-e>
-inoremap <4-ScrollWheelLeft> <c-o>z<left>
-inoremap <s-4-ScrollWheelLeft> <c-o>z<left>
-inoremap <c-4-ScrollWheelLeft> <c-o>z<left>
-inoremap <4-ScrollWheelRight> <c-o>z<right>
-inoremap <s-4-ScrollWheelRight> <c-o>z<right>
-inoremap <c-4-ScrollWheelRight> <c-o>z<right>
+"
+" NOTE: A multi-scroll event like e.g. `<3-ScrollWheelUp>` doesn't mean "three
+" scrolls", but it means "third scroll in a row". That's why it shouldn't be
+" mapped to something that moves the buffer by three lines, but one.
+"
+" NOTE: Mapping the mouse wheel events has one limitation: Inactive windows can
+" not be scrolled with the mouse. `mousefocus` might help, but doesn't work on
+" my system. Without mouse wheel mapping, scrolling of inactive windows
+" even works with `nomousefocus`.
+"
+" NOTE: I am also mapping left/right mouse wheel events here, though
+" unfortunately it seems that iTerm2 does not send these.
+"
+" NOTE: The sending of arrow keys instead of mouse scrolling events by iTerm2 is
+" another way of getting more or less smooth inertia-based scrolling, but
+" requires `set mouse=` in (Neo)Vim, which I find unacceptable. This also means
+" I can't use it for horizontal mouse scrolling, but as of 2023-07, iTerm2 does
+" not send such left/right arrow keys anyway.
+"
+" NOTE: To get horizontal scrolling anyway, I use Shift as a modifier key to
+" swap the scrolling axes. Who knows, maybe I should just map all mouse wheel
+" events to `<nop>` and force myself to learn the keyboard way of scrolling…
 
-"map <ScrollWheelUp> <nop>
-"map <s-ScrollWheelUp> <nop>
-"map <c-ScrollWheelUp> <nop>
-"map <ScrollWheelDown> <nop>
-"map <s-ScrollWheelDown> <nop>
-"map <c-ScrollWheelDown> <nop>
-"map <ScrollWheelLeft> <nop>
-"map <s-ScrollWheelLeft> <nop>
-"map <c-ScrollWheelLeft> <nop>
-"map <ScrollWheelRight> <nop>
-"map <s-ScrollWheelRight> <nop>
-"map <c-ScrollWheelRight> <nop>
-"map <2-ScrollWheelUp> <nop>
-"map <s-2-ScrollWheelUp> <nop>
-"map <c-2-ScrollWheelUp> <nop>
-"map <2-ScrollWheelDown> <nop>
-"map <s-2-ScrollWheelDown> <nop>
-"map <c-2-ScrollWheelDown> <nop>
-"map <2-ScrollWheelLeft> <nop>
-"map <s-2-ScrollWheelLeft> <nop>
-"map <c-2-ScrollWheelLeft> <nop>
-"map <2-ScrollWheelRight> <nop>
-"map <s-2-ScrollWheelRight> <nop>
-"map <c-2-ScrollWheelRight> <nop>
-"map <3-ScrollWheelUp> <nop>
-"map <s-3-ScrollWheelUp> <nop>
-"map <c-3-ScrollWheelUp> <nop>
-"map <3-ScrollWheelDown> <nop>
-"map <s-3-ScrollWheelDown> <nop>
-"map <c-3-ScrollWheelDown> <nop>
-"map <3-ScrollWheelLeft> <nop>
-"map <s-3-ScrollWheelLeft> <nop>
-"map <c-3-ScrollWheelLeft> <nop>
-"map <3-ScrollWheelRight> <nop>
-"map <s-3-ScrollWheelRight> <nop>
-"map <c-3-ScrollWheelRight> <nop>
-"map <4-ScrollWheelUp> <nop>
-"map <s-4-ScrollWheelUp> <nop>
-"map <c-4-ScrollWheelUp> <nop>
-"map <4-ScrollWheelDown> <nop>
-"map <s-4-ScrollWheelDown> <nop>
-"map <c-4-ScrollWheelDown> <nop>
-"map <4-ScrollWheelLeft> <nop>
-"map <s-4-ScrollWheelLeft> <nop>
-"map <c-4-ScrollWheelLeft> <nop>
-"map <4-ScrollWheelRight> <nop>
-"map <s-4-ScrollWheelRight> <nop>
-"map <c-4-ScrollWheelRight> <nop>
+let s:needs_scroll_wheel_mapping_full =
+\ has("nvim") && !has("nvim-0.5") " NOTE: Version is a guess
+let s:needs_scroll_wheel_mapping_axis_swap = v:true
+let s:scroll_wheel_multiplier_vertical = has("nvim") ? 1 : 3
+let s:scroll_wheel_multiplier_horizontal = has("nvim") ? 1 : 3
+
+if s:needs_scroll_wheel_mapping_full || s:needs_scroll_wheel_mapping_axis_swap
+  let s:scroll_wheel_lhs_postfixes =
+  \ {"u": "Up", "d": "Down", "l": "Left", "r": "Right"}
+  let s:axis_swap = {"u": "l", "d": "r", "l": "u", "r": "d"}
+  let s:scroll_rhss =
+  \ {"u": "<c-y>", "d": "<c-e>", "l": "z<left>", "r": "z<right>"}
+  let s:scroll_rhss_insert = {"u": "<c-x><c-y>", "d": "<c-x><c-e>",
+  \ "l": "<c-o>z<left>", "r": "<c-o>z<right>"}
+
+  for n in range(1, 4)
+    let n_prefix = n == 1 ? "" : s:StrCat(n, "-")
+    for modifier in s:needs_scroll_wheel_mapping_full ? ["", "s", "c"] : ["s"]
+      let prefix =
+      \ s:StrCat((modifier == "" ? "" : s:StrCat(modifier, "-")), n_prefix)
+      for mode in ["", "i"]
+        for [lhs_direction, postfix] in items(s:scroll_wheel_lhs_postfixes)
+          let lhs = s:StrCat("<", prefix, "ScrollWheel", postfix, ">")
+          let rhs_direction = modifier == "s" ? s:axis_swap[lhs_direction] :
+          \ lhs_direction
+          let rhs = mode == "i" ? s:scroll_rhss_insert[rhs_direction] :
+          \ s:scroll_rhss[rhs_direction]
+          let scroll_wheel_multiplier =
+          \ (rhs_direction == "u" || rhs_direction == "d")
+          \ ? s:scroll_wheel_multiplier_vertical
+          \ : s:scroll_wheel_multiplier_horizontal
+          let rhs = repeat(rhs, scroll_wheel_multiplier)
+          "echo (mode == "i" ? "inoremap" : "noremap") lhs rhs
+          execute (mode == "i" ? "inoremap" : "noremap") lhs rhs
+        endfor
+      endfor
+    endfor
+  endfor
+endif
+
 " }}}3
 
 " {{{2 Completion and Tab and Arrow keys behavior
