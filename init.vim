@@ -202,7 +202,7 @@ let s:init_path = fnamemodify(resolve(expand('<sfile>:p')), ':h')
 function Include(...)
   " NOTE: Version is a guess in the line below
   let ext = get(a:, 2, has("nvim-0.5") ? "lua" : "vim")
-  execute "source" s:StrCat(s:init_path, "/include/", a:1, ".lua")
+  execute "source" s:StrCat(s:init_path, "/include/", a:1, ".", ext)
 endfunction
 
 " A helper function to check from Vimscript if Lua has JIT compilation
