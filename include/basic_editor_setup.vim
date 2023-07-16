@@ -519,7 +519,7 @@ function MoveSelectionInCmpCompletionMenu(offset) abort
   return
 endfunction
 
-function MySymbolSubstitution() abort
+function MySymbolSubstitution(...) abort
   return v:false
 endfunction
 
@@ -536,14 +536,14 @@ function MyCompletionMenuOpeningCriterion()
   return current_char != "" && current_char != " " && current_char != "	"
 endfunction
 
-function MyInsertModeTabKeyHandler(shift_pressed) abort
+function MyInsertModeTabKeyHandler(shift_pressed, is_expr) abort
   let has_cmp = get(g:, "loaded_cmp", 0)
   if has_cmp && IsCmpCompletionMenuVisible()
     call MoveSelectionInCmpCompletionMenu(a:shift_pressed ? -1 : 1)
   elseif IsNativeCompletionMenuVisible()
     call MoveSelectionInNativeCompletionMenu(a:shift_pressed ? -1 : 1)
   else
-    if !a:shift_pressed && MySymbolSubstitution()
+    if !a:shift_pressed && MySymbolSubstitution(a:is_expr)
       " Symbol was substituted, nothing else to do
     elseif MyCompletionMenuOpeningCriterion() || a:shift_pressed
       if has_cmp
@@ -559,11 +559,11 @@ function MyInsertModeTabKeyHandler(shift_pressed) abort
 endfunction
 
 if v:version > 800 " NOTE: Version is a guess
-  inoremap   <tab> <cmd>call MyInsertModeTabKeyHandler(v:false)<cr>
-  inoremap <s-tab> <cmd>call MyInsertModeTabKeyHandler( v:true)<cr>
+  inoremap   <tab> <cmd>call MyInsertModeTabKeyHandler(v:false, v:false)<cr>
+  inoremap <s-tab> <cmd>call MyInsertModeTabKeyHandler( v:true, v:false)<cr>
 else
-  inoremap <expr>   <tab> MyInsertModeTabKeyHandler(v:false)
-  inoremap <expr> <s-tab> MyInsertModeTabKeyHandler( v:true)
+  inoremap <expr>   <tab> MyInsertModeTabKeyHandler(v:false, v:true)
+  inoremap <expr> <s-tab> MyInsertModeTabKeyHandler( v:true, v:true)
 end
 
 " Close completion menu with arrow keys. This function is meant to be overridden

@@ -406,14 +406,11 @@ if g:my_features["symbol_substitution"] " {{{1
 
 call Include("symbol-dict")
 
-function! MySymbolSubstitution() abort
+function! MySymbolSubstitution(use_feedkeys) abort
   if !exists("g:my_symbol_dict") | return v:false | endif
   " TODO: Similar precautions apply here like in the TODO in
   " `MyCompletionMenuOpeningCriterion`. In particular, I am not sure if this all
   " works when `virtualedit` is set to something.
-  " TODO: Something about this function does not agree with older Vim/Neovim
-  " versions. Maybe the `setline`/`setpos` during `<expr>` mappings or
-  " something. Need to make this work…
   let current_line = getline(".")
   let current_index = col(".") - 2
   let backslash_index = strridx(current_line, "\\", current_index)
@@ -424,18 +421,23 @@ function! MySymbolSubstitution() abort
       \ current_index - backslash_index)
       if has_key(g:my_symbol_dict, symbol_key)
         let symbol_value = g:my_symbol_dict[symbol_key]
-        let new_current_line = StrCat(
-        \ strpart(current_line, 0, backslash_index),
-        \ symbol_value,
-        \ strpart(current_line, current_index + 1))
-        if setline(".", new_current_line)
-          echoerr "setline() failed during symbol substitution"
-        endif
-        let new_current_index = current_index - strlen(symbol_key) +
-        \ strlen(symbol_value) + 1
-        if setpos(".", [0, line("."), new_current_index, 0])
-          echoerr "setpos() failed during symbol substitution"
-        endif
+        if a:use_feedkeys
+          call feedkeys(StrCat(repeat("\<bs>", strchars(symbol_key) + 1),
+          \ symbol_value), "n")
+        else
+          let new_current_line = StrCat(
+          \ strpart(current_line, 0, backslash_index),
+          \ symbol_value,
+          \ strpart(current_line, current_index + 1))
+          if setline(".", new_current_line)
+            echoerr "setline() failed during symbol substitution"
+          endif
+          let new_current_index = current_index - strlen(symbol_key) +
+          \ strlen(symbol_value) + 1
+          if setpos(".", [0, line("."), new_current_index, 0])
+            echoerr "setpos() failed during symbol substitution"
+          endif
+        end
         return v:true
       endif
     endif
