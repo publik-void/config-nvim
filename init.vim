@@ -38,6 +38,12 @@
 "   mappings script-local.
 " * `<silent>` may come in handy too.
 "
+" TODO: I have now found out that sourcing a VimScript file with a bunch of code
+" that sits in non-executed branches can still be way slower than not sourcing
+" those parts at all. I have also found a robust way to determine the location
+" of this `init.vim` file. Taken together, I guess I should probably source
+" individual sections instead of just using branching to disable them.
+"
 " NOTE: User-defined Vimscript functions are usually named in CamelCase to avoid
 " confusion with built-in functions.
 
@@ -179,7 +185,27 @@ endif
 " * `executable("foo")` to check if a shell command exists
 " * There's also some good info at `:h nvim`.
 
-" Here's a helper function to check from Vimscript if Lua has JIT compilation
+" A helper variable that contains the absolute path to the directory where this
+" `init.vim` resides, even if the running vim used an initialization file that
+" was a symlink to this one.
+let s:init_path = fnamemodify(resolve(expand('<sfile>:p')), ':h')
+
+" A helper function to source a script file from my custom `include` directory.
+" First argument is the file name without extension, the second argument is the
+" file extension. If the second argument is omitted, this indicates that both a
+" `.vim` and a `.lua` version exist and the most appropriate one for the running
+" Vim version should be selected.
+" NOTE: I think it's better not to automate detection of what files are present,
+" simply for performance reasons.
+" NOTE: I don't see myself using Vim9 script any time soon, so I don't support
+" it here.
+function Include(...)
+  " NOTE: Version is a guess in the line below
+  let ext = get(a:, 2, has("nvim-0.5") ? "lua" : "vim")
+  execute "source" s:StrCat(s:init_path, "/include/", a:1, ".lua")
+endfunction
+
+" A helper function to check from Vimscript if Lua has JIT compilation
 if has("nvim")
 lua << EOF
   function my.has_jit()
@@ -199,13 +225,14 @@ let g:my_features = {
 \ "automatic_background_handling": has("nvim"),
 \ "my_dim_colorscheme": 1,
 \ "basic_editor_setup": 1,
+\ "symbol_substitution": 1,
 \ "native_filetype_plugins_config": 1,
 \ "nerdcommenter": 1,
 \ "vim_commentary": 0,
 \ "vim_surround": 1,
 \ "vim_repeat": 1,
 \ "vimtex": 1,
-\ "julia_vim": executable("julia"),
+\ "julia_vim": 0 && executable("julia"),
 \ "vim_asciidoc_folding": 1,
 \ "nvim_treesitter": has("nvim-0.9"),
 \ "nvim_lspconfig": has("nvim-0.8"),
@@ -1169,8 +1196,13 @@ function MoveSelectionInCmpCompletionMenu(offset) abort
   return
 endfunction
 
+function MySymbolSubstitution() abort
+  return v:false
+endfunction
+
 function MyCompletionMenuOpeningCriterion()
-  let current_char = strpart(getline("."), col(".") - 2, 1)
+  "let current_char = strpart(getline("."), col(".") - 2, 1)
+  let current_char = getline(".")[col(".") - 2]
   " TODO: Delete this debugging command at some point in the future, when I'm
   " more certain that this doesn't need more debugging – e.g. although it
   " doesn't seem like it, I wonder whether I should really use something like
@@ -1188,7 +1220,9 @@ function MyInsertModeTabKeyHandler(shift_pressed) abort
   elseif IsNativeCompletionMenuVisible()
     call MoveSelectionInNativeCompletionMenu(a:shift_pressed ? -1 : 1)
   else
-    if MyCompletionMenuOpeningCriterion() || a:shift_pressed
+    if !a:shift_pressed && MySymbolSubstitution()
+      " Symbol was substituted, nothing else to do
+    elseif MyCompletionMenuOpeningCriterion() || a:shift_pressed
       if has_cmp
         call OpenCmpCompletionMenu(!a:shift_pressed)
       else
@@ -1244,6 +1278,46 @@ else
 endif
 
 endif " g:my_features["basic_editor_setup"]
+
+if g:my_features["symbol_substitution"] " {{{1
+
+call Include("symbol-dict")
+
+function! MySymbolSubstitution() abort
+  if !exists("g:my_symbol_dict") | return v:false | endif
+  " TODO: Similar precautions apply here like in the TODO in
+  " `MyCompletionMenuOpeningCriterion`. In particular, I am not sure if this all
+  " works when `virtualedit` is set to something.
+  let current_line = getline(".")
+  let current_index = col(".") - 2
+  let backslash_index = strridx(current_line, "\\", current_index)
+  if backslash_index >= 0 && backslash_index != current_index
+    let whitespace_index = strridx(current_line, " ", current_index)
+    if backslash_index > whitespace_index
+      let symbol_key = strpart(current_line, backslash_index + 1,
+      \ current_index - backslash_index)
+      if has_key(g:my_symbol_dict, symbol_key)
+        let symbol_value = g:my_symbol_dict[symbol_key]
+        let new_current_line = s:StrCat(
+        \ strpart(current_line, 0, backslash_index),
+        \ symbol_value,
+        \ strpart(current_line, current_index + 1))
+        if setline(".", new_current_line)
+          echoerr "setline() failed during symbol substitution"
+        endif
+        let new_current_index = current_index - strlen(symbol_key) +
+        \ strlen(symbol_value) + 1
+        if setpos(".", [0, line("."), new_current_index, 0])
+          echoerr "setpos() failed during symbol substitution"
+        endif
+        return v:true
+      endif
+    endif
+  endif
+  return v:false
+endfunction
+
+endif
 
 if g:my_features["native_filetype_plugins_config"] " {{{1
 
