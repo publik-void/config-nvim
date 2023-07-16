@@ -181,6 +181,8 @@ endif
 "   * Neovim version lower bound can be checked with e.g. `has("nvim-0.8")`
 " * `hostname()` returns the hostname.
 " * `exists("+foo")` to check if an option exists (see `:h hidden-options`)
+" * `exists("*foo")` to check if a function exists
+" * `exists(":foo")` to check if a command exists
 " * `exists("x:foo")` to check if a variable exists
 " * `executable("foo")` to check if a shell command exists
 " * There's also some good info at `:h nvim`.
@@ -190,11 +192,11 @@ endif
 " was a symlink to this one.
 let g:my_init_path = fnamemodify(resolve(expand('<sfile>:p')), ':h')
 
-" A helper function to source a script file from my custom `include` directory.
-" First argument is the file name without extension, the second argument is the
-" file extension. If the second argument is omitted, this indicates that both a
-" `.vim` and a `.lua` version exist and the most appropriate one for the running
-" Vim version should be selected.
+" A helper function to source a script file from the `init.vim`-containing
+" directory. First argument is the file name without extension, the second
+" argument is the file extension. If the second argument is omitted, this
+" indicates that both a `.vim` and a `.lua` version exist and the most
+" appropriate one for the running Vim version should be selected.
 " NOTE: I think it's better not to automate detection of what files are present,
 " simply for performance reasons.
 " NOTE: I don't see myself using Vim9 script any time soon, so I don't support
@@ -202,7 +204,7 @@ let g:my_init_path = fnamemodify(resolve(expand('<sfile>:p')), ':h')
 function Include(...)
   " NOTE: Version is a guess in the line below
   let ext = get(a:, 2, has("nvim-0.5") ? "lua" : "vim")
-  execute "source" StrCat(g:my_init_path, "/include/", a:1, ".", ext)
+  execute "source" StrCat(g:my_init_path, a:1, ".", ext)
 endfunction
 
 " A helper function to check from Vimscript if Lua has JIT compilation
@@ -396,15 +398,15 @@ for [feature, specs] in s:my_feature_filespecs
     let spec = specs[1]
   endif
   if spec == "auto"
-    call Include(file)
+    call Include(StrCat("/include/", file))
   elseif spec != "none"
-    call Include(file, spec)
+    call Include(StrCat("/include/", file), spec)
   endif
 endfor
 
 if g:my_features["symbol_substitution"] " {{{1
 
-call Include("symbol-dict")
+call Include("/include/symbol_substitution/define-symbol-dict", "vim")
 
 function! MySymbolSubstitution(use_feedkeys) abort
   if !exists("g:my_symbol_dict") | return v:false | endif
