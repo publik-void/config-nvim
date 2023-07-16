@@ -266,6 +266,7 @@ let g:my_plugins = {
 \   "options": {
 \     "dependencies": [
 \       {"name": "cmp-buffer", "author": "hrsh7th"},
+\       {"name": "cmp-path", "author": "hrsh7th"},
 \       {"name": "cmp-nvim-lsp", "author": "hrsh7th", "options": {
 \         "enabled": s:AsBool(g:my_features["nvim_lspconfig"])}},
 \       {"name": "cmp_luasnip", "author": "saadparwaiz1", "options": {
@@ -1462,7 +1463,8 @@ lua << EOF
       -- is no language server active, but this changes when a language server
       -- has been attached to, so it should be okay.
       {name = "nvim_lsp"},
-      {name = "buffer"}}
+      {name = "buffer"},
+      {name = "path"}}
   }
 
   -- Setup LuaSnip source when `luasnip` feature is enabled
