@@ -411,6 +411,9 @@ function! MySymbolSubstitution() abort
   " TODO: Similar precautions apply here like in the TODO in
   " `MyCompletionMenuOpeningCriterion`. In particular, I am not sure if this all
   " works when `virtualedit` is set to something.
+  " TODO: Something about this function does not agree with older Vim/Neovim
+  " versions. Maybe the `setline`/`setpos` during `<expr>` mappings or
+  " something. Need to make this work…
   let current_line = getline(".")
   let current_index = col(".") - 2
   let backslash_index = strridx(current_line, "\\", current_index)
