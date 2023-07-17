@@ -627,3 +627,94 @@ else
   inoremap <expr> <right> MyInsertModeArrowKeyHandler("\<right>")
 endif
 
+" {{{1 Startup working directory
+
+" On startup, try to find a project root directory to change to. I think this is
+" useful because some functionality like e.g. Telescope's Live Grep uses the
+" current working directory as default reference point.
+
+" Don't automatically change the working directory when opening/switching
+" files/buffers/windows etc.
+set noautochdir
+
+" As there is some asynchronicity involved here, use this global variable to
+" make sure the project root directory change happens only once for git (level
+" 1) and once for LSP (level 2, taking precedence over the git root).
+let g:my_cd_project_root_completion_level = 0
+
+" Handling for asynchronous git root finding
+let g:my_cd_project_root_git_stdout_buffer = ""
+
+function TryCdProjectRootNeovimGitHandler(job_id, data, event)
+  let level = 1
+  if a:event == "stdout"
+    let g:my_cd_project_root_git_stdout_buffer = join(
+    \ [g:my_cd_project_root_git_stdout_buffer] + a:data, "")
+  elseif a:event == "exit"
+    if g:my_cd_project_root_completion_level < level &&
+      \ !a:data && isdirectory(g:my_cd_project_root_git_stdout_buffer)
+      execute "cd" g:my_cd_project_root_git_stdout_buffer
+      let g:my_cd_project_root_completion_level = level
+    endif
+  endif
+endfunction
+
+function TryCdProjectRootVimGitHandler(channel)
+  let level = 1
+  while ch_status(a:channel, {'part': 'out'}) == 'buffered'
+    let g:my_cd_project_root_git_stdout_buffer = StrCat(
+    \ g:my_cd_project_root_git_stdout_buffer, ch_read(a:channel))
+  endwhile
+  if g:my_cd_project_root_completion_level < level &&
+    \ isdirectory(g:my_cd_project_root_git_stdout_buffer)
+    execute "cd" g:my_cd_project_root_git_stdout_buffer
+    let g:my_cd_project_root_completion_level = level
+  endif
+endfunction
+
+function TryCdProjectRoot(level) abort
+  if g:my_cd_project_root_completion_level >= a:level | return | endif
+  let project_root = ""
+
+  if a:level == 1 && executable("git")
+    " Do this with jobs if possible
+    if exists("*jobstart")
+      call jobstart(["git", "rev-parse", "--show-toplevel"],
+      \ {"on_stdout": function("TryCdProjectRootNeovimGitHandler"),
+      \  "on_exit":   function("TryCdProjectRootNeovimGitHandler")})
+    elseif has("job") && has("channel") && exists("*job_start") &&
+      \ exists("*ch_status") && exists("*ch_read")
+      let job = job_start(["git", "rev-parse", "--show-toplevel"],
+      \ {"in_io": "null", "close_cb": "TryCdProjectRootVimGitHandler"})
+    else
+      " NOTE: Using a list instead of a string avoids invocation through the
+      " shell, but is not supported on older Vim versions.
+      let git_root = system("git rev-parse --show-toplevel")
+      if !v:shell_error && isdirectory(git_root)
+        let project_root = git_root
+      endif
+    endif
+  endif
+
+  if a:level == 2 && has("nvim-0.5.0")
+    " The last folder in this list tends to correspond to whetever file was
+    " opened last.
+    let workspace_folders = v:lua.vim.lsp.buf.list_workspace_folders()
+    if !empty(workspace_folders)
+      let project_root = workspace_folders[-1]
+    endif
+  endif
+
+  if !empty(project_root) && g:my_cd_project_root_completion_level < a:level
+    execute "cd" project_root
+    let g:my_cd_project_root_completion_level = a:level
+  endif
+endfunction
+
+augroup MyCdProjectRoot
+  autocmd VimEnter * call TryCdProjectRoot(1)
+  if exists("##LspAttach")
+    autocmd LspAttach * call TryCdProjectRoot(2)
+  endif
+augroup END
+
