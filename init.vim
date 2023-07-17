@@ -7,15 +7,18 @@
 
 " TODO: This looks interesting: https://github.com/nathom/filetype.nvim
 "
-" TODO: Have individual files for specific file types? E.g. set conceallevel and
-" shiftwidth for `filetype`s such as JSON, Python, TeX, …, instead of in here.
-" This may come in handy:
-" https://vi.stackexchange.com/questions/14371/why-files-in-config-nvim-after-ftplugin-are-not-taken-into-acount
-"
 " TODO: Add either a thesaurus file or a thesaurus function for the english
 " language? (See `:h compl-thesaurus`)
 "
-" TODO: Make these `TODO` and `NOTE` admonitions be highlighted consistently
+" TODO: In several places here, I use mappings with the `<cmd>` argument, which
+" aren't supported on older Vim versions.
+" * Find out the exact versions where the functionality in question was added
+" * See if I can find a way to abstract this, so that I don't need to write
+"   version-sepcific branching in every instance of these mappings
+" * Go over all those instances and improve them
+" * Check out and utilize `<SID>`, which helps with keeping functions for
+"   mappings script-local.
+" * `<silent>` may come in handy too.
 "
 " NOTE: There are many claims that netrw is a bad and buggy piece of software
 " and should probably be rewritten entirely. However, it does more than just
@@ -27,16 +30,6 @@
 " exists, it would be nice to make use of it as a vanilla part of Vim. Still, I
 " think the best solution for now is to just ignore it and hope that it gets
 " deprecated in favor of a better solution or something.
-"
-" TODO: In several places here, I use mappings with the `<cmd>` argument, which
-" aren't supported on older Vim versions.
-" * Find out the exact versions where the functionality in question was added
-" * See if I can find a way to abstract this, so that I don't need to write
-"   version-sepcific branching in every instance of these mappings
-" * Go over all those instances and improve them
-" * Check out and utilize `<SID>`, which helps with keeping functions for
-"   mappings script-local.
-" * `<silent>` may come in handy too.
 "
 " NOTE: I have now found out that sourcing a VimScript file with a bunch of code
 " that sits in non-executed branches can still be way slower than not sourcing
