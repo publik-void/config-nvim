@@ -413,12 +413,6 @@ endfor
 
 if g:my_features["symbol_substitution"] " {{{1
 
-" TODO: Add completion for the symbol keys. As the native Vim features such as
-" dictionary, spell, thesaurus, etc. all come with their own caveats that make
-" it hard to do properly for this particular case, maybe do it as a custom
-" source for `nvim-cmp` like this one:
-" https://github.com/wincent/wincent/blob/2d926177773f72f4bf3d87b87ac8535ad45341ad/aspects/nvim/files/.config/nvim/lua/wincent/cmp/handles.lua
-
 call Include("/include/symbol_substitution/define-symbol-dict", "vim")
 
 function! MySymbolSubstitution(use_feedkeys) abort
@@ -534,6 +528,8 @@ lua << EOF
 -- If the language server is not available/runnable, the plugin should output
 -- a message and otherwise essentially disable itself, I believe.
 
+local lspconfig = require("lspconfig")
+
 -- Julia `LanguageServer.jl`
 -- As of 2023-06, `nvim-lspconfig` uses a default server command that first
 -- looks in `~/.julia/environments/nvim-lspconfig`, and if it doesn't exist or
@@ -550,7 +546,7 @@ lua << EOF
 -- code it gets to see has the same version as the Julia process running the
 -- server or whether it actually respects a project's Julia version as
 -- specified in `Manifest.toml`.
-require("lspconfig").julials.setup{}
+lspconfig.julials.setup{}
 
 -- TODO: Add `clangd`
 
@@ -597,7 +593,7 @@ local shellcheck = {
 -- This is by the way what the fish plugins for Vim like `dag/vim-fish` are
 -- doing, among other things, like e.g. leveraging `fish_indent`.
 
-require("lspconfig").efm.setup{
+lspconfig.efm.setup{
   settings = {
     rootMarkers = {".git/"},
     languages = {
@@ -671,6 +667,10 @@ endif " g:my_features["vimtex"]
 
 if g:my_features["nvim_cmp"] " {{{1
 
+if g:my_features["symbol_substitution"]
+  call Include("/include/nvim_cmp/symbol_substitution_source", "lua")
+endif
+
 lua << EOF
   local cmp = require("cmp")
 
@@ -691,6 +691,10 @@ lua << EOF
       {name = "buffer"},
       {name = "path"}}
   }
+
+  if vim.g.my_features.symbol_substitution ~= 0 then
+    table.insert(config.sources, {name = "symbol_substitution"})
+  end
 
   -- Setup LuaSnip source when `luasnip` feature is enabled
   if vim.g.my_features.luasnip ~= 0 then
@@ -746,6 +750,7 @@ lua << EOF
   end
 
   -- TODO: Key mappings to scroll in documentation
+  -- TODO: Key mapping to accept snippet
 EOF
 
 " Override default definitions of Vimscript helper functions and redirect to Lua
