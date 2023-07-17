@@ -171,6 +171,33 @@ endif
 " Turns out that I don't need all this and can just do the following:
 set colorcolumn=+1
 
+" {{{1 General keyword highlighting
+
+let s:my_general_keywords = ["TODO", "NOTE", "FIXME", "HACK", "PERF", "WARNING"]
+
+" The out-of-the-box highlighting definitions for these are spread out among
+" many language-specific syntax files and thus differ a bit depending on the
+" filetype. While it is not trivial to disable them all cleanly to get something
+" more unified, I can at least override both the Vim syntax highlighting as well
+" as Treesitter-based highlighting with `matchadd`. There are also plugins for
+" these sorts of keywords, making them searchable and with signs and all, but I
+" think this is a case where native Vim functionality provides enough to
+" implement the behavior I want, and hence I would rather just stick with that.
+
+let s:my_general_keywords =
+\ map(copy(s:my_general_keywords), 'StrCat(v:val, ":")') + s:my_general_keywords
+let s:my_general_keywords_pattern = join(s:my_general_keywords, "\\|")
+
+highlight link MyGeneralKeyword Todo
+
+augroup MyGeneralKeywords
+  " NOTE: These autocmd events are suggested on the web for doing this, e.g.
+  " here: https://stackoverflow.com/a/11710333
+  " I guess they make sense because `matchadd` patterns are bound to windows.
+  autocmd WinEnter,VimEnter * :silent! call
+  \ matchadd('MyGeneralKeyword', s:my_general_keywords_pattern, -1)
+augroup END
+
 " {{{1 Moving lines around
 
 " TODO: It'd be really nice if these next two blocks of code worked with counts
