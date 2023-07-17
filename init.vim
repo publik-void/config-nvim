@@ -5,8 +5,6 @@
 
 " {{{1 General notes and todos
 
-" TODO: This looks interesting: https://github.com/nathom/filetype.nvim
-"
 " TODO: Add either a thesaurus file or a thesaurus function for the english
 " language? (See `:h compl-thesaurus`)
 "
