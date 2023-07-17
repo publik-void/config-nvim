@@ -229,6 +229,7 @@ let g:my_features = {
 \ "vim_commentary": 0,
 \ "vim_surround": 1,
 \ "vim_repeat": 1,
+\ "vim_fugitive": 1,
 \ "vimtex": 1,
 \ "julia_vim": 0 && executable("julia"),
 \ "vim_asciidoc_folding": 1,
@@ -266,6 +267,10 @@ let g:my_plugins = {
 \   "options": {}},
 \ "vim_repeat": {
 \   "name": "vim-repeat",
+\   "author": "tpope",
+\   "options": {}},
+\ "vim_fugitive": {
+\   "name": "vim-fugitive",
 \   "author": "tpope",
 \   "options": {}},
 \ "vimtex": {
@@ -499,6 +504,10 @@ map <char-62> <plug>NERDCommenterAlignBoth
 vmap <char-62> <plug>NERDCommenterComment
 
 endif " g:my_features["nerdcommenter"]
+
+if g:my_features["vim_fugitive"] " {{{1
+
+endif " g:my_features["vim_fugitive"]
 
 if g:my_features["vim_asciidoc_folding"] " {{{1
 
