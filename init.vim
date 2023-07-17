@@ -295,6 +295,7 @@ let g:my_plugins = {
 \     "dependencies": [
 \       {"name": "cmp-buffer", "author": "hrsh7th"},
 \       {"name": "cmp-path", "author": "hrsh7th"},
+\       {"name": "cmp-omni", "author": "hrsh7th"},
 \       {"name": "cmp-nvim-lsp", "author": "hrsh7th", "options": {
 \         "enabled": s:AsBool(g:my_features["nvim_lspconfig"])}},
 \       {"name": "cmp_luasnip", "author": "saadparwaiz1", "options": {
@@ -674,6 +675,10 @@ lua << EOF
       -- is no language server active, but this changes when a language server
       -- has been attached to, so it should be okay.
       {name = "nvim_lsp"},
+      -- NOTE: There seems to be an issue with `cmp-omni` when `cmp-nvim-lsp` is
+      -- present too. It seems it's not trivial to fix, but maybe there'll be
+      -- some update in the future that helps.
+      {name = "omni"},
       {name = "buffer"},
       {name = "path"}}
   }
