@@ -174,6 +174,7 @@ if has("nvim")
 endif
 
 " {{{1 Features and plugins
+" {{{2 Notes
 
 " * To check for platforms or features, use `has`
 "   * e.g. to find out if it's Neovim, run `has('nvim')`
@@ -186,6 +187,8 @@ endif
 " * `exists("x:foo")` to check if a variable exists
 " * `executable("foo")` to check if a shell command exists
 " * There's also some good info at `:h nvim`.
+
+" {{{2 Helper definitions
 
 " A helper variable that contains the absolute path to the directory where this
 " `init.vim` resides, even if the running vim used an initialization file that
@@ -216,9 +219,11 @@ lua << EOF
 EOF
 endif
 
-" NOTE: The two dictionaries below can't be accessed from Lua if they are
-" script-local. Having them be global also allows to check their status after
-" startup, so maybe it's the better choice anyway.
+" {{{2 `g:my_features`
+
+" NOTE: `g:my_features` and `g:my_plugins` below can't be accessed from Lua if
+" they are script-local. Having them be global also allows to check their status
+" after startup, so maybe it's the better choice anyway.
 
 " Feature list: used to enable/disable sections of this file
 " Values should be numbers, not `v:true`/`v:false`
@@ -243,11 +248,14 @@ let g:my_features = {
 \ "telescope": has("nvim-0.9"),
 \ "luasnip": has("nvim-0.5")}
 
+" {{{2 `g:my_plugins`
+
 " Plugin list: I chose to do the old "another layer of indirection" here and
 " write these out into this dictionary, so that I can separate my plugin list
 " from the plugin manager. The key for every entry is the corresponding feature
 " name, the value is a dictionary containing the plugin name and author plus
 " another dictionary with optional further specifications.
+
 let g:my_plugins = {
 \ "my_dim_colorscheme": {
 \   "name": "vim-dim",
@@ -318,8 +326,8 @@ let g:my_plugins = {
 \       {"name": "friendly-snippets", "author": "rafamadriz"}]}}
 \ } " Separated this `}` to not unintentionally create a fold marker
 
-" Notes about features/plugins:
-"
+" {{{2 Notes about features/plugins
+
 " Regarding `tpope/vim-commentary` vs. `preservim/nerdcommenter`:
 " `vim-commentary` is a nice plugin insofar as it's very small and leverages a
 " bunch of vanilla Vim functionality, including operators/motions. Seems to me
@@ -367,6 +375,8 @@ let g:my_plugins = {
 " install_jsregexp` which I have omitted for now, but may want to look into at
 " some point.
 
+" {{{2 Sourcing feature files
+
 " TODO: Complete this (putting feature sections into individual files)
 let s:my_feature_filespecs = [
 \ ["plugin_management", ["auto", "vim"]],
@@ -405,6 +415,12 @@ for [feature, specs] in s:my_feature_filespecs
 endfor
 
 if g:my_features["symbol_substitution"] " {{{1
+
+" TODO: Add completion for the symbol keys. As the native Vim features such as
+" dictionary, spell, thesaurus, etc. all come with their own caveats that make
+" it hard to do properly for this particular case, maybe do it as a custom
+" source for `nvim-cmp` like this one:
+" https://github.com/wincent/wincent/blob/2d926177773f72f4bf3d87b87ac8535ad45341ad/aspects/nvim/files/.config/nvim/lua/wincent/cmp/handles.lua
 
 call Include("/include/symbol_substitution/define-symbol-dict", "vim")
 
