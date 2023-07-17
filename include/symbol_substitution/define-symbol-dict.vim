@@ -1,4 +1,4 @@
-if 0 && has("nvim-0.5") " NOTE: Version is a guess
+if has("nvim-0.5") " NOTE: Version is a guess
   call Include("/include/symbol_substitution/symbol-dict", "lua")
 elseif exists("*json_decode")
   " NOTE: The `join` is needed because older Neovim and current Vim (2022-07)
