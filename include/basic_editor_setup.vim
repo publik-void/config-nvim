@@ -672,31 +672,65 @@ function TryCdProjectRootVimGitHandler(channel)
   endif
 endfunction
 
-function TryCdProjectRoot(level) abort
-  if g:my_cd_project_root_completion_level >= a:level | return | endif
+" Called with a `level` argument, attempt to complete the project root directory
+" change level if it has not happened already. Called without arguments, reset
+" the level and re-try all levels. (A "level" basically being one method of
+" finding a project root directory with a certain precedence). If there still
+" are LSP workspace folders (`echo v:lua.vim.lsp.buf.list_workspace_folders()`)
+" from previous buffers, they will dictate the result.
+function TryCdProjectRoot(...) abort
+  if !exists("a:1")
+    let g:my_cd_project_root_completion_level = 0
+    for level in range(2, 1, -1)
+      call TryCdProjectRoot(level)
+    endfor
+    return
+  endif
+
+  if g:my_cd_project_root_completion_level >= a:1 | return | endif
   let project_root = ""
 
-  if a:level == 1 && executable("git")
-    " Do this with jobs if possible
+  if a:1 == 1 && executable("git")
+    " Use directory of current file as starting point, if available
+    let working_dir = getcwd()
+    let working_buf = bufname()
+    if !empty(working_buf)
+      let buf_dir = fnamemodify(resolve(working_buf), ":h")
+      if isdirectory(buf_dir)
+        let working_dir = buf_dir
+      endif
+    endif
+
+    " Empty the buffer before a new Git job is started
+    let g:my_cd_project_root_git_stdout_buffer = ""
+
+    " Call git via jobs if possible
     if exists("*jobstart")
       call jobstart(["git", "rev-parse", "--show-toplevel"],
       \ {"on_stdout": function("TryCdProjectRootNeovimGitHandler"),
-      \  "on_exit":   function("TryCdProjectRootNeovimGitHandler")})
+      \  "on_exit":   function("TryCdProjectRootNeovimGitHandler"),
+      \  "cwd": working_dir})
     elseif has("job") && has("channel") && exists("*job_start") &&
       \ exists("*ch_status") && exists("*ch_read")
       let job = job_start(["git", "rev-parse", "--show-toplevel"],
-      \ {"in_io": "null", "close_cb": "TryCdProjectRootVimGitHandler"})
+      \ {"in_io": "null", "close_cb": "TryCdProjectRootVimGitHandler",
+      \  "cwd": working_dir})
     else
       " NOTE: Using a list instead of a string avoids invocation through the
       " shell, but is not supported on older Vim versions.
-      let git_root = system("git rev-parse --show-toplevel")
-      if !v:shell_error && isdirectory(git_root)
-        let project_root = git_root
+      let git_roots = systemlist(
+      \ StrCat("cd \"", working_dir, "\" && git rev-parse --show-toplevel"))
+      if !v:shell_error
+        for git_root in git_roots
+          if isdirectory(git_root)
+            let project_root = git_root
+          endif
+        endfor
       endif
     endif
   endif
 
-  if a:level == 2 && has("nvim-0.5.0")
+  if a:1 == 2 && has("nvim-0.5.0")
     " The last folder in this list tends to correspond to whetever file was
     " opened last.
     let workspace_folders = v:lua.vim.lsp.buf.list_workspace_folders()
@@ -705,9 +739,9 @@ function TryCdProjectRoot(level) abort
     endif
   endif
 
-  if !empty(project_root) && g:my_cd_project_root_completion_level < a:level
+  if !empty(project_root) && g:my_cd_project_root_completion_level < a:1
     execute "cd" project_root
-    let g:my_cd_project_root_completion_level = a:level
+    let g:my_cd_project_root_completion_level = a:1
   endif
 endfunction
 
