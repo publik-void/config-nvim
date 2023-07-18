@@ -94,44 +94,48 @@ set shortmess+=w
 " I chose to not use any plugins and try to do what I want by myself.
 
 " Function to get the correct highlight
-function MyStatuslineHighlightLookup(is_focused, type) abort
-  let l:highlight = "%#"
-  let l:highlight =
-  \ StrCat(l:highlight, a:is_focused ? "StatusLine" : "StatusLineNC")
-  if a:type == "weak"
-    let l:highlight_weak = StrCat(l:highlight, "Weak")
-    if hlexists(l:highlight_weak)
-      let l:highlight = l:highlight_weak
+function MyStatuslineHighlightLookup(is_focused, is_weak) abort
+  let highlight = a:is_focused ? "StatusLine" : "StatusLineNC"
+  if a:is_weak
+    let highlight_weak = StrCat(highlight, "Weak")
+    if hlexists(highlight_weak)
+      let highlight = highlight_weak
     endif
   endif
-  let l:highlight = StrCat(l:highlight, "#")
-  return l:highlight
+  return StrCat("%#", highlight, "#")
 endfunction
 
 " Creating the status line from a function gives flexibility, e.g. higlighting
 " based on focus is easier/more functional.
 function MyStatusline() abort
-  if exists("g:statusline_winid") " Not present on older `vim`/`neovim` versions
-    let l:is_focused = g:statusline_winid == win_getid(winnr())
+  if exists("g:statusline_winid")
+    let is_focused = g:statusline_winid == win_getid(winnr())
   else
-    let l:is_focused = v:true
+    let is_focused = v:true
   endif
 
-  let l:statusline = "" " Initialize
-  let l:statusline = StrCat(l:statusline,
-  \ '%<') " Truncate from the beginning
-  let l:statusline = StrCat(l:statusline,
-  \ MyStatuslineHighlightLookup(l:is_focused, 'weak'))
-  let l:statusline = StrCat(l:statusline,
-  \ '%{pathshorten(getcwd())}/%=') " Current working directory
-  let l:statusline = StrCat(l:statusline,
-  \ MyStatuslineHighlightLookup(l:is_focused, 'strong'))
-  let l:statusline = StrCat(l:statusline,
-  \ '%f%=') " Current file
-  let l:statusline = StrCat(l:statusline,
-  \ ' [%{mode()}]%m%r%h%w%y ') " Mode, flags, and filetype
-  let l:statusline = StrCat(l:statusline,
-  \ '%l:%c%V %P') " Cursor position
+  " Truncate from the beginning
+  let statusline = '%<'
+
+  " "Weak" text
+  let statusline = StrCat(statusline,
+  \ MyStatuslineHighlightLookup(is_focused, v:true))
+
+  " Current working directory
+  let statusline = StrCat(statusline, '%{pathshorten(getcwd())}/%=')
+
+  " "Strong" text
+  let statusline = StrCat(statusline,
+  \ MyStatuslineHighlightLookup(is_focused, v:false))
+
+  " Current file
+  let statusline = StrCat(statusline, '%f%=')
+
+  " Mode, flags, and filetype
+  let statusline = StrCat(statusline, ' [%{mode()}]%m%r%h%w%y ')
+
+  " Cursor position
+  let statusline = StrCat(statusline, '%l:%c%V %P')
 
   return statusline
 endfunction
