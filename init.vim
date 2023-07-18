@@ -419,7 +419,7 @@ function! MySymbolSubstitution(use_feedkeys) abort
   if !exists("g:my_symbol_dict") | return v:false | endif
   " TODO: Similar precautions apply here like in the TODO in
   " `MyCompletionMenuOpeningCriterion`. In particular, I am not sure if this all
-  " works when `virtualedit` is set to something.
+  " works when `virtualedit` is set to something or `conceallevel` is > 0.
   let current_line = getline(".")
   let current_index = col(".") - 2
   let backslash_index = strridx(current_line, "\\", current_index)
@@ -791,8 +791,8 @@ elseif g:my_features["autocompletion"] " {{{1
 " TODO: I am not experienced with the different kinds of cursor positions that
 " can be queried by Vim's functions, like the byte position vs. the charater
 " position etc. The code below may need revising to get this completely right. I
-" wonder especially if `virtualedit` makes a difference here and haven't tested
-" that at the time of writing this comment.
+" wonder especially if `virtualedit` or `conceallevel` make a difference here
+" and haven't tested that at the time of writing this comment.
 
 let g:my_native_autocompletion_suppression_flag = v:false
 let g:my_native_autocompletion_curpos_tracker = [0, -1, -1, 0, 0]
