@@ -375,12 +375,13 @@ let g:my_plugins = {
 " {{{2 Sourcing feature files
 
 " TODO: Complete this (putting feature sections into individual files)
+" TODO: (Auto-)generate this dict as JSON with a script?
 let s:my_feature_filespecs = [
 \ ["plugin_management", ["auto", "vim"]],
 \ ["automatic_background_handling", ["vim", "none"]],
 \ ["my_dim_colorscheme", ["vim", "none"]],
-\ ["basic_editor_setup", ["vim", "none"]]]
-"\ "symbol_substitution": 1,
+\ ["basic_editor_setup", ["vim", "none"]],
+\ ["symbol_substitution", ["vim", "none"]]]
 "\ "native_filetype_plugins_config": 1,
 "\ "nerdcommenter": 1,
 "\ "vim_commentary": 0,
@@ -410,51 +411,6 @@ for [feature, specs] in s:my_feature_filespecs
     call Include(StrCat("/include/", file), spec)
   endif
 endfor
-
-if g:my_features["symbol_substitution"] " {{{1
-
-call Include("/include/symbol_substitution/define-symbol-dict", "vim")
-
-function! MySymbolSubstitution(use_feedkeys) abort
-  if !exists("g:my_symbol_dict") | return v:false | endif
-  " TODO: Similar precautions apply here like in the TODO in
-  " `MyCompletionMenuOpeningCriterion`. In particular, I am not sure if this all
-  " works when `virtualedit` is set to something or `conceallevel` is > 0.
-  let current_line = getline(".")
-  let current_index = col(".") - 2
-  let backslash_index = strridx(current_line, "\\", current_index)
-  if backslash_index >= 0 && backslash_index != current_index
-    let whitespace_index = strridx(current_line, " ", current_index)
-    if backslash_index > whitespace_index
-      let symbol_key = strpart(current_line, backslash_index + 1,
-      \ current_index - backslash_index)
-      if has_key(g:my_symbol_dict, symbol_key)
-        let symbol_value = g:my_symbol_dict[symbol_key]
-        if a:use_feedkeys
-          call feedkeys(StrCat(repeat("\<bs>", strchars(symbol_key) + 1),
-          \ symbol_value), "n")
-        else
-          let new_current_line = StrCat(
-          \ strpart(current_line, 0, backslash_index),
-          \ symbol_value,
-          \ strpart(current_line, current_index + 1))
-          if setline(".", new_current_line)
-            echoerr "setline() failed during symbol substitution"
-          endif
-          let new_current_index = current_index - strlen(symbol_key) +
-          \ strlen(symbol_value) + 1
-          if setpos(".", [0, line("."), new_current_index, 0])
-            echoerr "setpos() failed during symbol substitution"
-          endif
-        end
-        return v:true
-      endif
-    endif
-  endif
-  return v:false
-endfunction
-
-endif
 
 if g:my_features["native_filetype_plugins_config"] " {{{1
 
