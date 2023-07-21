@@ -84,7 +84,11 @@ function MyNativeSinglePluginInstall(plugin)
   let command = StrCat(command, " https://github.com/", name, ".git")
   let command = StrCat(command, " ", path)
   echo system(command)
-  "echo StrCat("Plugin `", name, "` git-cloned.")
+  if v:shell_error
+    echoerr StrCat("Failed to git-clone `", name, "`")
+  "else
+  "  echo StrCat("Plugin `", name, "` git-cloned.")
+  endif
   if (has_key(a:plugin, "options") && has_key(a:plugin["options"], "build"))
     echo StrCat("  NOTE: Build command has to be run manually: `",
     \ a:plugin["options"]["build"], "`")
@@ -105,9 +109,20 @@ endfunction
 
 function MyNativePluginRemove()
   if isdirectory(s:my_plugins_dir)
-    call delete(s:my_plugins_dir, "rf")
+    " call delete(s:my_plugins_dir, "rf")
+    " NOTE: Turns out `delete()` interprets its argument as regexp which can
+    " lead to unexpected results or errors. I think it makes sense to use
+    " `system()` here instead, because even though it is somewhat
+    " platform-dependent, this should be no issue as this config is set to use
+    " `sh` and is meant to be used on Unix/Linux. Also, I use `system()` for the
+    " above git calls too…
+    echo system(StrCat("rm -rf ", shellescape(s:my_plugins_dir)))
   endif
-  echo StrCat("`", s:my_plugins_dir, "` deleted.")
+  if v:shell_error
+    echoerr StrCat("Failed to delete `", s:my_plugins_dir, "`.")
+  else
+    echo StrCat("`", s:my_plugins_dir, "` deleted.")
+  endif
 endfunction
 
 function MyNativePluginUpdate()
