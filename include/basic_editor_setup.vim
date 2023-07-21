@@ -55,8 +55,17 @@ set path+=**
 " override this mapping when a fuzzy finding plugin is enabled
 nnoremap <m-/> :call feedkeys(":find \<c-i>\<c-p>", "t")
 
-" Switch to alternate file with backspace
-nnoremap <bs> <c-^>
+" " Switch to alternate file with backspace
+" nnoremap <bs> <c-^>
+
+" Use Tab and Shift+Tab in normal mode to cycle through buffers
+if v:version > 800 " NOTE: Version is a guess
+  nnoremap <tab> <cmd>bnext<cr>
+  nnoremap <s-tab> <cmd>bprevious<cr>
+else
+  nnoremap <silent> <tab> :bnext<cr>
+  nnoremap <silent> <s-tab> :bprevious<cr>
+endif
 
 " {{{1 Netrw
 
@@ -204,31 +213,34 @@ augroup END
 
 " {{{1 Moving lines around
 
-" TODO: It'd be really nice if these next two blocks of code worked with counts
-" too.
+" NOTE: I disabled these for now to see if I can get along with the native Vim
+" functionality instead like `<<` etc.
 
-" Moving lines up and down – can of course be done with `dd` and `p` as well,
-" but does not auto-indent that way, with my configuration.
-" TODO: Change all of these to use `<cmd>` so they're silent … however, <cmd> is
-" not supported on old Vim versions, so I may want to maximize compatibilty too.
-nnoremap <c-j> <cmd>move .+1<cr>==
-nnoremap <c-k> <cmd>move .-2<cr>==
-inoremap <c-j> <esc>:move .+1<cr>==gi
-inoremap <c-k> <esc>:move .-2<cr>==gi
-vnoremap <c-j> :move '>+1<cr>gv=gv
-vnoremap <c-k> :move '<-2<cr>gv=gv
-
-" Moving lines left and right, i.e. indent or unindent
-" NOTE: I like the behavior of this more than `<` and `>` in normal mode.
-nnoremap <c-h> a<c-d><esc>
-nnoremap <c-l> a<c-t><esc>
-inoremap <c-h> <c-d>
-inoremap <c-l> <c-t>
-" NOTE: `gv` keeps the lines selected. However, it does not select the exact
-" same content when done like this. I guess that's okay for now.
-vnoremap <c-h> <lt>gv
-" NOTE: I'm using `<char-62>` to target the key `>` because there is no `<gt>`.
-vnoremap <c-l> <char-62>gv
+"" TODO: It'd be really nice if these next two blocks of code worked with counts
+"" too.
+"
+"" Moving lines up and down – can of course be done with `dd` and `p` as well,
+"" but does not auto-indent that way, with my configuration.
+"" TODO: Change all of these to use `<cmd>` so they're silent … however, <cmd> is
+"" not supported on old Vim versions, so I may want to maximize compatibilty too.
+"nnoremap <c-j> <cmd>move .+1<cr>==
+"nnoremap <c-k> <cmd>move .-2<cr>==
+"inoremap <c-j> <esc>:move .+1<cr>==gi
+"inoremap <c-k> <esc>:move .-2<cr>==gi
+"vnoremap <c-j> :move '>+1<cr>gv=gv
+"vnoremap <c-k> :move '<-2<cr>gv=gv
+"
+"" Moving lines left and right, i.e. indent or unindent
+"" NOTE: I like the behavior of this more than `<` and `>` in normal mode.
+"nnoremap <c-h> a<c-d><esc>
+"nnoremap <c-l> a<c-t><esc>
+"inoremap <c-h> <c-d>
+"inoremap <c-l> <c-t>
+"" NOTE: `gv` keeps the lines selected. However, it does not select the exact
+"" same content when done like this. I guess that's okay for now.
+"vnoremap <c-h> <lt>gv
+"" NOTE: I'm using `<char-62>` to target the key `>` because there is no `<gt>`.
+"vnoremap <c-l> <char-62>gv
 
 " {{{1 Folding
 

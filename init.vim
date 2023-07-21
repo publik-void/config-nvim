@@ -225,8 +225,8 @@ let g:my_features = {
 \ "basic_editor_setup": 1,
 \ "symbol_substitution": 1,
 \ "native_filetype_plugins_config": 1,
-\ "nerdcommenter": 1,
-\ "vim_commentary": 0,
+\ "nerdcommenter": 0,
+\ "vim_commentary": 1,
 \ "vim_surround": 1,
 \ "vim_repeat": 1,
 \ "vim_fugitive": 1,
@@ -492,10 +492,14 @@ let g:NERDCommentEmptyLines = 1
 
 let g:NERDTrimTrailingWhitespace = 1
 
-" NOTE: `<gt>` does not exist, instead `<char-62>` can be used
-map <lt> <plug>NERDCommenterUncomment
-map <char-62> <plug>NERDCommenterAlignBoth
-vmap <char-62> <plug>NERDCommenterComment
+" " NOTE: `<gt>` does not exist, instead `<char-62>` can be used
+" map <lt> <plug>NERDCommenterUncomment
+" map <char-62> <plug>NERDCommenterAlignBoth
+" vmap <char-62> <plug>NERDCommenterComment
+
+map <c-h> <plug>NERDCommenterUncomment
+map <c-l> <plug>NERDCommenterAlignBoth
+vmap <c-l> <plug>NERDCommenterComment
 
 endif " g:my_features["nerdcommenter"]
 
