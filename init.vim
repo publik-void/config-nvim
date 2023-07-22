@@ -52,17 +52,17 @@ endif
 
 " {{{1 Essential initializations
 
-" Helper function to convert any value to `v:false`/`v:true`
-function s:AsBool(value)
-  if a:value | return v:true | else | return v:false | endif
-endfunction
-
 " This is always set in Neovim, but doesn't hurt to set it explicitly.
 " It resets some other options in Vim, which is why it should be set early
 set nocompatible
 
 " POSIX compliance needed
 set shell=/bin/sh
+
+" Helper function to convert any value to `v:false`/`v:true`
+function s:AsBool(value)
+  if a:value | return v:true | else | return v:false | endif
+endfunction
 
 " In Vimscript, `.` gets deprecated in favor of `..`. See `:h expr-..`.
 " And this also goes for assignment, i.e. `..=` instead of `.=`.
@@ -77,6 +77,33 @@ else
   function StrCat(x, ...)
     let str = a:x | for x in a:000 | let str .= x | endfor | return str
   endfunction
+endif
+
+" A helper variable that contains the absolute path to the directory where this
+" `init.vim` resides, even if the running vim used an initialization file that
+" was a symlink to this one.
+let g:my_init_path = fnamemodify(resolve(expand('<sfile>:p')), ':h')
+
+" Add Neovim standard config path if running in Vim
+if !has("nvim")
+  let &runtimepath = StrCat(g:my_init_path, ",", &runtimepath)
+endif
+
+" Set leader key to backslash. This is the default, but I do it here explicitly
+" to remind myself that this should be done before any leader-dependent mappings
+" are created.
+let g:mapleader = "\\"
+
+" This will usually be turned on by default and may lead to problems if not.
+" I don't see why I would disable this except maybe on a very resource-limited
+" system, at which point the choice of using (Neo-)Vim may be questionable
+" anyway.
+filetype plugin indent on
+syntax enable
+
+" Set up a namespace for my user-defined functions in Lua
+if has("nvim")
+  lua my = {}
 endif
 
 " Neovim providers
@@ -142,28 +169,6 @@ endif
 " Tell Python X to always use Python 3
 if has("pythonx") | set pyxversion=3 | endif
 
-" If this file is used from Vim (not Neovim)
-if !has("nvim")
-  set runtimepath+=$HOME/.config/nvim
-endif
-
-" Set leader key to backslash. This is the default, but I do it here explicitly
-" to remind myself that this should be done before any leader-dependent mappings
-" are created.
-let g:mapleader = "\\"
-
-" This will usually be turned on by default and may lead to problems if not.
-" I don't see why I would disable this except maybe on a very resource-limited
-" system, at which point the choice of using (Neo-)Vim may be questionable
-" anyway.
-filetype plugin indent on
-syntax enable
-
-" Set up a namespace for my user-defined functions in Lua
-if has("nvim")
-  lua my = {}
-endif
-
 " {{{1 Features and plugins
 " {{{2 Notes
 
@@ -181,26 +186,6 @@ endif
 
 " {{{2 Helper definitions
 
-" A helper variable that contains the absolute path to the directory where this
-" `init.vim` resides, even if the running vim used an initialization file that
-" was a symlink to this one.
-let g:my_init_path = fnamemodify(resolve(expand('<sfile>:p')), ':h')
-
-" A helper function to source a script file from the `init.vim`-containing
-" directory. First argument is the file name without extension, the second
-" argument is the file extension. If the second argument is omitted, this
-" indicates that both a `.vim` and a `.lua` version exist and the most
-" appropriate one for the running Vim version should be selected.
-" NOTE: I think it's better not to automate detection of what files are present,
-" simply for performance reasons.
-" NOTE: I don't see myself using Vim9 script any time soon, so I don't support
-" it here.
-function Include(...)
-  " NOTE: Version is a guess in the line below
-  let ext = get(a:, 2, has("nvim-0.5") ? "lua" : "vim")
-  execute "source" StrCat(g:my_init_path, a:1, ".", ext)
-endfunction
-
 " A helper function to check from Vimscript if Lua has JIT compilation
 if has("nvim")
 lua << EOF
@@ -210,6 +195,59 @@ lua << EOF
 EOF
 endif
 
+" A dict that contains sourceable file types and whether the running Vim version
+" supports them
+" NOTE: I think Lua support started to become really useable at Neovim 0.5,
+" so I'll use that here, though I'm not completely sure.
+let g:my_source_type_support = {"vim": 1, "lua": has("nvim-0.5")}
+
+" A helper function to source a script file from `g:my_init_path`.
+" NOTE: I don't see myself using Vim9 script any time soon, so I don't support
+" it here.
+" NOTE: I thought about the performance of auto-detecting files vs. not and I
+" think the former is just fine (and if not, it will show up in measurements
+" with the `--startuptime` command line option.
+function Include(...)
+  " `a:1`: File name, without extension, relative to `g:my_init_path`
+  let name = a:1
+  " `a:2`: File extension(s in order of priority)
+  let exts = !exists("a:2") ? ["lua", "vim"] :
+  \ type(a:2) == type([]) ? a:2 : [a:2]
+  " `a:3`: Output error message if no file was sourced?
+  let vocal = (exists("a:3") ? a:3 : exists("a:2")) ? exts : []
+
+  let file = ""
+  for ext in exts
+    if g:my_source_type_support[ext]
+      let putative_file = StrCat(g:my_init_path, name, ".", ext)
+      if filereadable(putative_file)
+        let file = putative_file
+        break
+      endif
+    endif
+  endfor
+
+  if empty(file)
+    if !empty(vocal)
+      let msg = StrCat("No readable and supported file found with prefix `",
+      \ g:my_init_path, name, "` for extensions ")
+      let is_first_entry = v:true
+      for ext in vocal
+        if is_first_entry
+          let is_first_entry = v:false
+        else
+          let msg = StrCat(msg, ", ")
+        endif
+        let msg = StrCat(msg, "`", ext, "`")
+      endfor
+      let msg = StrCat(msg, ".")
+      echoerr msg
+    endif
+  else
+    execute "source" file
+  endif
+endfunction
+
 " {{{2 `g:my_features`
 
 " NOTE: `g:my_features` and `g:my_plugins` below can't be accessed from Lua if
@@ -218,27 +256,32 @@ endif
 
 " Feature list: used to enable/disable sections of this file
 " Values should be numbers, not `v:true`/`v:false`
-let g:my_features = {
-\ "plugin_management": has("nvim-0.8") && v:lua.my.has_jit(),
-\ "automatic_background_handling": has("nvim"),
-\ "my_dim_colorscheme": 1,
-\ "basic_editor_setup": 1,
-\ "symbol_substitution": 1,
-\ "native_filetype_plugins_config": 1,
-\ "nerdcommenter": 0,
-\ "vim_commentary": 1,
-\ "vim_surround": 1,
-\ "vim_repeat": 1,
-\ "vim_fugitive": 1,
-\ "vimtex": 1,
-\ "julia_vim": 0 && executable("julia"),
-\ "vim_asciidoc_folding": 1,
-\ "nvim_treesitter": has("nvim-0.9"),
-\ "nvim_lspconfig": has("nvim-0.8"),
-\ "nvim_cmp": has("nvim-0.7"),
-\ "autocompletion": 1,
-\ "telescope": has("nvim-0.9"),
-\ "luasnip": has("nvim-0.5")}
+let g:my_features_list = [
+\ ["plugin_management", has("nvim-0.8") && v:lua.my.has_jit()],
+\ ["automatic_background_handling", has("nvim")],
+\ ["my_dim_colorscheme", 1],
+\ ["basic_editor_setup", 1],
+\ ["symbol_substitution", 1],
+\ ["native_filetype_plugins_config", 1],
+\ ["nerdcommenter", 0],
+\ ["vim_commentary", 1],
+\ ["vim_surround", 1],
+\ ["vim_repeat", 1],
+\ ["vim_fugitive", 1],
+\ ["vimtex", 1],
+\ ["julia_vim", 0 && executable("julia")],
+\ ["vim_asciidoc_folding", 1],
+\ ["nvim_treesitter", has("nvim-0.9")],
+\ ["nvim_lspconfig", has("nvim-0.8")],
+\ ["nvim_cmp", has("nvim-0.7")],
+\ ["autocompletion", 1],
+\ ["telescope", has("nvim-0.9")],
+\ ["luasnip", has("nvim-0.5")]]
+
+let g:my_features = {}
+for [feature, is_enabled] in g:my_features_list
+  let g:my_features[feature] = is_enabled
+endfor
 
 " {{{2 `g:my_plugins`
 
@@ -374,479 +417,9 @@ let g:my_plugins = {
 
 " {{{2 Sourcing feature files
 
-" TODO: Complete this (putting feature sections into individual files)
-" TODO: (Auto-)generate this dict as JSON with a script?
-let s:my_feature_filespecs = [
-\ ["plugin_management", ["auto", "vim"]],
-\ ["automatic_background_handling", ["vim", "none"]],
-\ ["my_dim_colorscheme", ["vim", "none"]],
-\ ["basic_editor_setup", ["vim", "none"]],
-\ ["symbol_substitution", ["vim", "none"]]]
-"\ "native_filetype_plugins_config": 1,
-"\ "nerdcommenter": 1,
-"\ "vim_commentary": 0,
-"\ "vim_surround": 1,
-"\ "vim_repeat": 1,
-"\ "vimtex": 1,
-"\ "julia_vim": 0 && executable("julia"),
-"\ "vim_asciidoc_folding": 1,
-"\ "nvim_treesitter": has("nvim-0.9"),
-"\ "nvim_lspconfig": has("nvim-0.8"),
-"\ "nvim_cmp": has("nvim-0.7"),
-"\ "autocompletion": 1,
-"\ "telescope": has("nvim-0.9"),
-"\ "luasnip": has("nvim-0.5")}
-
-for [feature, specs] in s:my_feature_filespecs
-  if g:my_features[feature]
-    let file = feature
-    let spec = specs[0]
-  else
-    let file = StrCat("no_", feature)
-    let spec = specs[1]
-  endif
-  if spec == "auto"
-    call Include(StrCat("/include/", file))
-  elseif spec != "none"
-    call Include(StrCat("/include/", file), spec)
-  endif
+for [feature, is_enabled] in g:my_features_list
+  let name = StrCat("/include/", is_enabled ? "" : "no_", feature)
+  call Include(name)
 endfor
 
-if g:my_features["native_filetype_plugins_config"] " {{{1
-
-" The filetype plugins included with (Neo-)Vim have configuration options.
-" This section configures some of them.
-
-" TeX {{{2
-" Default TeX flavor
-let g:tex_flavor = "latex"
-
-" Disable concealing
-let g:tex_conceal = ""
-
-" Python {{{2
-" `shiftwidth` and others would otherwise be set to PEP8-conforming values
-let g:python_recommended_style = 0
-
-" Julia {{{2
-" Don't have the shiftwidth be set to 4
-let g:julia_set_indentation = 0
-
-" Don't highlight operators
-let g:julia_highlight_operators = 0
-
-" }}}2
-
-endif " g:my_features["native_filetype_plugins_config"]
-
-if g:my_features["nerdcommenter"] " {{{1
-
-" The plugin would usually create a whole bunch of `<leader>`… mappings
-let g:NERDCreateDefaultMappings = 0
-
-let g:NERDCommentEmptyLines = 1
-
-let g:NERDTrimTrailingWhitespace = 1
-
-" " NOTE: `<gt>` does not exist, instead `<char-62>` can be used
-" map <lt> <plug>NERDCommenterUncomment
-" map <char-62> <plug>NERDCommenterAlignBoth
-" vmap <char-62> <plug>NERDCommenterComment
-
-map <c-h> <plug>NERDCommenterUncomment
-map <c-l> <plug>NERDCommenterAlignBoth
-vmap <c-l> <plug>NERDCommenterComment
-
-endif " g:my_features["nerdcommenter"]
-
-if g:my_features["vim_fugitive"] " {{{1
-
-endif " g:my_features["vim_fugitive"]
-
-if g:my_features["vim_asciidoc_folding"] " {{{1
-
-" It "may" be necessary to do this, but it looks to me like `foldmethod` is
-" `expr` already when opening an AsciiDoc file.
-"autocmd FileType asciidoc setlocal foldmethod=expr
-
-endif " g:my_features["vim_asciidoc_folding"]
-
-if g:my_features["nvim_treesitter"] " {{{1
-
-lua << EOF
-require("nvim-treesitter.configs").setup{
-  ensure_installed = {"c", "lua", "vim", "vimdoc", "query"},
-  auto_install = vim.fn.executable("tree-sitter") ~= 0
-}
-EOF
-
-endif " g:my_features["nvim_treesitter"]
-
-if g:my_features["nvim_lspconfig"] " {{{1
-
-lua << EOF
--- If the language server is not available/runnable, the plugin should output
--- a message and otherwise essentially disable itself, I believe.
-
-local lspconfig = require("lspconfig")
-
--- Julia `LanguageServer.jl`
--- As of 2023-06, `nvim-lspconfig` uses a default server command that first
--- looks in `~/.julia/environments/nvim-lspconfig`, and if it doesn't exist or
--- `LanguageServer.jl` isn't installed there, it uses the default environment
--- instead.
--- It then searches in a couple ways of descending priority for a Julia
--- project to attach to.
--- I could implement automatic installation of the `LanguageServer.jl` package
--- here, but I feel like that's the kind of step I'd rather have control over,
--- even if it means some extra setup.
--- As is typical for Julia, it kind of takes a while to start up. I wonder if
--- something can be done about that.
--- I wonder whether this language server always just assumes that any Julia
--- code it gets to see has the same version as the Julia process running the
--- server or whether it actually respects a project's Julia version as
--- specified in `Manifest.toml`.
-lspconfig.julials.setup{}
-
--- TODO: Add `clangd`
-
--- `efm-langserver` translates linter output into LSP
--- First, the configure linters to use
-
--- efm-langserver` tool: `flake8` with inline configuration
-local flake8 = {
-  lintCommand = "flake8 " ..
-    "--ignore=" ..
-      "E114," ..
-      "E121," ..
-      "E128," ..
-      "E201," ..
-      "E203," ..
-      "E221," ..
-      "E222," ..
-      "E226," ..
-      "E241," ..
-      "E251," ..
-      "E261," ..
-      "E262," ..
-      "E302," ..
-      "E303," ..
-      "E305," ..
-      "E702," ..
-      "E731," ..
-      "W391," ..
-      "W504 " ..
-    -- "--max-line-length=80" ..
-    "--indent-size=2 ",
-  lintFormats = {"%f:%l:%c: %m"}}
-
--- efm-langserver tool: `shellcheck`
-local shellcheck = {
-  lintCommand = "shellcheck --format=gcc --external-sources",
-  lintSource = "shellcheck",
-  lintFormats = {
-    "%f:%l:%c: %trror: %m",
-    "%f:%l:%c: %tarning: %m",
-    "%f:%l:%c: %tote: %m"}}
-
--- I tried to set up `fish --no-execute --debug=…` as a linter here but failed.
--- This is by the way what the fish plugins for Vim like `dag/vim-fish` are
--- doing, among other things, like e.g. leveraging `fish_indent`.
-
-lspconfig.efm.setup{
-  settings = {
-    rootMarkers = {".git/"},
-    languages = {
-      python = {flake8},
-      sh = {shellcheck},
-    }
-  },
-  filetypes = {"python", "sh"},
-  single_file_support = true, -- Unless `efm-langserver -v` < v0.0.38
-}
-EOF
-
-endif " g:my_features["nvim_lspconfig"]
-
-if g:my_features["vimtex"] " {{{1
-
-" Choose compiler based on availability
-let g:vimtex_compiler_method = executable("latexmk") ? "latexmk" : "tectonic"
-
-" NOTE: In the past, I had tried to set up a `latexmk` compiler in a Docker
-" container. I believe that this should in theory be perfectly possible to the
-" point of basically having a drop-in `latexmk` shell script that forwards all
-" the environment variables, dotfiles, and arguments into the container. But
-" since I'm not aware of such a thing existing, I'd have to write it myself, at
-" which point I'm probably better off just taking the plunge and installing a
-" LaTeX distribution on my system.
-
-" Parsing bibliographies for e.g. cite completion: only use `bibtex` if it is
-" available. The `"vim"` backend is apparently more robust but slower.
-let g:vimtex_parser_bib_backend = executable("bibtex") ? "bibtex" : "vim"
-
-" `:VimtexCompile`, also mapped to `<localleader>ll` by default, runs a one-shot
-" compilation, unless the compiler supports continuous mode, in which case it
-" toggles the continuous compiler process. Let's define a function here that
-" calls `:VimtexCompile` unless a compiler is running, so that either a one-shot
-" compilation is triggered unless the last one hasn't finished, or the function
-" makes sure a continuous compilation is running and starts one if not.
-function MyVimtexCompileUnlessRunning()
-  if g:loaded_vimtex && !b:vimtex.compiler.is_running()
-    VimtexCompile
-  endif
-endfunction
-
-augroup MyVimtexConfig
-  autocmd!
-
-  " NOTE: Commented this out for now, as it may be too much.
-  " Start a one-shot or continuous compilation process on in"itialization
-  "autocmd User VimtexEventInitPost call MyVimtexCompileUnlessRunning()
-
-  " For LaTeX filetypes, create an autocommand that compiles on write unless a
-  " compiler is already running (possibly in continuous mode and thus taking
-  " care of the compile-on-write already)
-  autocmd FileType tex
-  \ autocmd! MyVimtexConfig BufWritePost * call MyVimtexCompileUnlessRunning()
-
-  " When the last buffer of a LaTeX project is closed, remove auxiliary files
-  autocmd User VimtexEventQuit call vimtex#compiler#clean(0)
-augroup END
-
-" Disable viewer interface
-" NOTE: I'd need to set up a bunch of stuff to be able to use this properly. I
-" was fine using `Preview.app` and compile-on-write thus far, so let's keep it
-" simple like that for now.
-let g:vimtex_view_enabled = 0
-
-" Disable conceal features
-let g:vimtex_syntax_conceal_disable = 1
-
-endif " g:my_features["vimtex"]
-
-if g:my_features["nvim_cmp"] " {{{1
-
-if g:my_features["symbol_substitution"]
-  call Include("/include/nvim_cmp/symbol_substitution_source", "lua")
-endif
-
-lua << EOF
-  local cmp = require("cmp")
-
-  local config = {
-    -- It is recommended to manage the keymapping by oneself
-    mapping = {},
-
-    sources = {
-      -- NOTE: At the moment, as far as I can tell, when running `:CmpStatus`,
-      -- `nvim_lsp` is listed under `# unknown source names`, as long as there
-      -- is no language server active, but this changes when a language server
-      -- has been attached to, so it should be okay.
-      {name = "nvim_lsp"},
-      -- NOTE: There seems to be an issue with `cmp-omni` when `cmp-nvim-lsp` is
-      -- present too. It seems it's not trivial to fix, but maybe there'll be
-      -- some update in the future that helps.
-      {name = "omni"},
-      {name = "buffer"},
-      {name = "path"}}
-  }
-
-  if vim.g.my_features.symbol_substitution ~= 0 then
-    table.insert(config.sources, {name = "symbol_substitution"})
-  end
-
-  -- Setup LuaSnip source when `luasnip` feature is enabled
-  if vim.g.my_features.luasnip ~= 0 then
-    config["snippet"] = {
-      expand = function(args)
-        require("luasnip").lsp_expand(args.body)
-      end}
-
-    table.insert(config.sources, {name = "luasnip"})
-  end
-
-  -- Disable autocompletion if `autocompletion` feature is disabled
-  if vim.g.my_features.autocompletion == 0 then
-    config["completion"] = {autocomplete = false}
-  end
-
-  -- I think several calls to `cmp.setup` would work just as well as
-  -- conditionally adding parts to the `config`, but whatever…
-  cmp.setup(config)
-
-  -- The readme files for `nvim-cmp` and `cmp-nvim-lsp` advise to add these
-  -- capabilities to the enabled language servers. The english in the
-  -- documentation is rather broken, so I'm not exactly sure what this does.
-  if vim.g.my_features["nvim_lspconfig"] then
-    local capabilities = require("cmp_nvim_lsp").default_capabilities()
-    local lspconfig = require("lspconfig")
-
-    for k, v in pairs(lspconfig.util.available_servers()) do
-      lspconfig[v].setup{capabilities = capabilities}
-    end
-  end
-
-  -- Helper functions for my custom tab key handler
-  function my.is_cmp_completion_menu_visible()
-    return cmp.visible()
-  end
-  function my.open_cmp_completion_menu(select)
-    -- TODO: respect `select`
-    return cmp.complete()
-  end
-  function my.close_cmp_completion_menu()
-    return cmp.close()
-  end
-  function my.move_selection_in_cmp_completion_menu(offset)
-    local options = {
-      behavior = cmp.SelectBehavior.Insert,
-      -- NOTE: I *think* the `count` option works as expected, but in the
-      -- documentation it says something about `count > 1` doing a page up or
-      -- down…
-      count = math.abs(offset)}
-    local func = offset <= 0 and cmp.select_prev_item or cmp.select_next_item
-    return func(options)
-  end
-
-  -- TODO: Key mappings to scroll in documentation
-  -- TODO: Key mapping to accept snippet
-EOF
-
-" Override default definitions of Vimscript helper functions and redirect to Lua
-function! IsCmpCompletionMenuVisible()
-  return v:lua.my.is_cmp_completion_menu_visible()
-endfunction
-function! OpenCmpCompletionMenu(...) abort
-  return a:0 > 0 ? v:lua.my.open_cmp_completion_menu(a:1) :
-  \ v:lua.my.open_cmp_completion_menu()
-endfunction
-function! CloseCmpCompletionMenu() abort
-  return v:lua.my.close_cmp_completion_menu()
-endfunction
-function! MoveSelectionInCmpCompletionMenu(offset) abort
-  return v:lua.my.move_selection_in_cmp_completion_menu(a:offset)
-endfunction
-
-" Override this function with a version that works with the `cmp` menu
-function! MyInsertModeArrowKeyHandler(key)
-  if IsCmpCompletionMenuVisible()
-    call CloseCmpCompletionMenu()
-  elseif IsNativeCompletionMenuVisible()
-    call CloseNativeCompletionMenu()
-  endif
-  call feedkeys(a:key, "nt")
-  return "" " For `<expr>` mappings
-endfunction
-
-elseif g:my_features["autocompletion"] " {{{1
-
-" In this section, I tried to implement a native autocompletion mechanism that
-" turns on if `g:my_features["autocompletion"]` is on, but no completion plugin
-" is loaded.
-
-" NOTE: Should I ever wonder about this in the future: This autocompletion
-" produces a lot of messages unless `shortmess` contains `c`.
-
-" TODO: I am not experienced with the different kinds of cursor positions that
-" can be queried by Vim's functions, like the byte position vs. the charater
-" position etc. The code below may need revising to get this completely right. I
-" wonder especially if `virtualedit` or `conceallevel` make a difference here
-" and haven't tested that at the time of writing this comment.
-
-let g:my_native_autocompletion_suppression_flag = v:false
-let g:my_native_autocompletion_curpos_tracker = [0, -1, -1, 0, 0]
-
-function! MyInsertModeArrowKeyHandler(key)
-  " TODO: The idea with this function is to always close and not re-open the
-  " menu when arrow keys are pressed. My native autocompletion code however uses
-  " the `CursorMovedI` event to open the menu, iff the cursor position has
-  " changed. Hence, we would need to update the cursor position tracker here to
-  " the position the cursor gets to after feeding the arrow key, so that the
-  " autocompletion doesn't detect a change. This is likely complicated, so
-  " instead I use this flag to suppress the menu opening while the arrow key is
-  " fed. The flag is automatically disabled in the end of the `CursorMovedI`
-  " handling function. I can't just disable it in this function after calling
-  " `feedkeys` because the processing of the keys may not happen immediately.
-  " Meanwhile, I can't be sure that `CursorMovedI` gets triggered at all after
-  " feeding an arrow key (the cursor may be in a position where it can't move
-  " any further). This means there can be cases where the flag is still enabled
-  " when autocompletion should happen. It'd be nice to not have it like this and
-  " have a consistent behavior instead, but I think I won't use this native
-  " autocompletion enough to justify spending more time on the code now. Also,
-  " there are plugins that do pretty much this (opening the native Vim
-  " completion menu automatically without tons of other bells and whistles), so
-  " resorting to one of those may be an option as well, provided the allow for
-  " the behavior I am trying to implement here.
-  let g:my_native_autocompletion_suppression_flag = v:true
-  if IsNativeCompletionMenuVisible()
-    call CloseNativeCompletionMenu()
-  endif
-  call feedkeys(a:key, "nt")
-  return "" " For `<expr>` mappings
-endfunction
-
-function MyNativeAutocompletionHandler() abort
-  " No need to check whether the popup menu is already visible as `CursorMovedI`
-  " is not triggered if that's the case.
-  " TODO: I have not tested what happens if `completeopt` is configured to not
-  " show the menu.
-  if !g:my_native_autocompletion_suppression_flag
-    let curpos = getcurpos()
-    if (curpos[1] != g:my_native_autocompletion_curpos_tracker[1] ||
-    \   curpos[2] != g:my_native_autocompletion_curpos_tracker[2]) &&
-    \ MyCompletionMenuOpeningCriterion()
-      let g:my_native_autocompletion_curpos_tracker = curpos
-      call OpenNativeCompletionMenu(0)
-    endif
-  endif
-  let g:my_native_autocompletion_suppression_flag = v:false
-endfunction
-
-augroup MyNativeAutocompletion
-  autocmd InsertEnter *
-  \ let g:my_native_autocompletion_curpos_tracker = getcurpos()
-  autocmd CursorMovedI * call MyNativeAutocompletionHandler()
-augroup END
-
-endif " g:my_features["autocompletion"]
-
-if g:my_features["telescope"] " {{{1
-
-lua << EOF
-  local telescope = require("telescope")
-
-  telescope.setup{
-    defaults = {
-      -- Use horizontal or vertical layout based on window size
-      layout_strategy = "flex"
-    }
-  }
-
-  -- Setup LuaSnip picker when `luasnip` feature is enabled
-  if vim.g.my_features["luasnip"] ~= 0 then
-    telescope.load_extension("luasnip")
-  end
-
-  -- Key mappings
-  local builtin = require("telescope.builtin")
-  vim.keymap.set("n", "<m-/>", builtin.find_files, {})
-  vim.keymap.set("n", "<c-_>", builtin.live_grep,  {}) -- `<c-_>` is ctrl+/
-  vim.keymap.set("n",     "?", builtin.help_tags,  {})
-EOF
-
-endif " g:my_features["telescope"]
-
-if g:my_features["luasnip"] " {{{1
-
-lua << EOF
-  -- Load VS Code style snippets from plugins
-  -- Lazy loading is recommended
-  require("luasnip.loaders.from_vscode").lazy_load()
-
-  -- Loading SnipMate style disabled for now
-  -- require("luasnip.loaders.from_snipmate").lazy_load()
-EOF
-
-endif " g:my_features["telescope"]
 
