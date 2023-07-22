@@ -271,12 +271,13 @@ let g:my_features_list = [
 \ ["vimtex", 1],
 \ ["julia_vim", 0 && executable("julia")],
 \ ["vim_asciidoc_folding", 1],
-\ ["nvim_treesitter", has("nvim-0.9")],
+\ ["nvim_treesitter", has("nvim-0.5")],
 \ ["nvim_lspconfig", has("nvim-0.8")],
 \ ["nvim_cmp", has("nvim-0.7")],
 \ ["autocompletion", 1],
 \ ["telescope", has("nvim-0.9")],
-\ ["luasnip", has("nvim-0.5")]]
+\ ["luasnip", has("nvim-0.5")],
+\ ["orgmode", has("nvim-0.8")]]
 
 let g:my_features = {}
 for [feature, is_enabled] in g:my_features_list
@@ -363,7 +364,11 @@ let g:my_plugins = {
 \   "options": {
 \     "version": "1.*",
 \     "dependencies": [
-\       {"name": "friendly-snippets", "author": "rafamadriz"}]}}
+\       {"name": "friendly-snippets", "author": "rafamadriz"}]}},
+\ "orgmode": {
+\   "name": "orgmode",
+\   "author": "nvim-orgmode",
+\   "options": {}}
 \ } " Separated this `}` to not unintentionally create a fold marker
 
 " {{{2 Notes about features/plugins
@@ -401,6 +406,14 @@ let g:my_plugins = {
 " like LSP support for AsciiDoc is something that's been planned but not made a
 " reality yet. Treesitter support is also something that can be found as a
 " non-checked todo in GitHub issues.
+"
+" `nvim-treesitter/nvim-treesitter`: As of 2023-07, the readme file says it
+" requires the "latest" Neovim version, with "nightly recommended". This is
+" probably because the plugin is still heavily developed and probably even
+" influences the development of Neovim itself. However, e.g.
+" `nvim-orgmode/orgmode` requires Neovim 0.8.0 and `nvim-treesitter`, and so I
+" think I'll enable `nvim-treesitter` for older versions too and see how it
+" goes.
 "
 " `neovim/nvim-lspconfig`: I think, at least for now, that it makes sense to tie
 " the list of configured LSP servers together with the plugin and not to create

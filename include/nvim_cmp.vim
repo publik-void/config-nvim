@@ -26,13 +26,14 @@ lua << EOF
       {name = "path"}}
   }
 
-  if vim.g.my_features.symbol_substitution ~= 0 then
+  -- Setup my custom symbol substitution source if enabled
+  if vim.g.my_features.symbol_substitution == 1 then
     table.insert(config.sources, {name = "symbol_substitution"})
   end
 
   -- Setup LuaSnip source when `luasnip` feature is enabled
-  if vim.g.my_features.luasnip ~= 0 then
-    config["snippet"] = {
+  if vim.g.my_features.luasnip == 1 then
+    config.snippet = {
       expand = function(args)
         require("luasnip").lsp_expand(args.body)
       end}
@@ -40,9 +41,14 @@ lua << EOF
     table.insert(config.sources, {name = "luasnip"})
   end
 
+  -- Setup Org Mode source if `orgmode` feature is enabled
+  if vim.g.my_features.orgmode == 1 then
+    table.insert(config.sources, {name = "orgmode"})
+  end
+
   -- Disable autocompletion if `autocompletion` feature is disabled
-  if vim.g.my_features.autocompletion == 0 then
-    config["completion"] = {autocomplete = false}
+  if vim.g.my_features.autocompletion ~= 1 then
+    config.completion = {autocomplete = false}
   end
 
   -- I think several calls to `cmp.setup` would work just as well as
@@ -52,7 +58,7 @@ lua << EOF
   -- The readme files for `nvim-cmp` and `cmp-nvim-lsp` advise to add these
   -- capabilities to the enabled language servers. The english in the
   -- documentation is rather broken, so I'm not exactly sure what this does.
-  if vim.g.my_features["nvim_lspconfig"] then
+  if vim.g.my_features.nvim_lspconfig == 1 then
     local capabilities = require("cmp_nvim_lsp").default_capabilities()
     local lspconfig = require("lspconfig")
 
