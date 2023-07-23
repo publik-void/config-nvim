@@ -1,5 +1,8 @@
 " NOTE: This file gets sourced for C++ filetypes as well
 
+if !exists("g:my_features") ||
+\ g:my_features["native_filetype_plugins_overrides"]
+
 " Vim comes with a plugin called `ccomplete` which is provides an omnifunc that
 " uses `ctags` files for completion. This omnifunc is always set by the `c.vim`
 " filetype plugin and simply does not provide matches if no `ctags` files exist.
@@ -7,5 +10,16 @@
 " decides which completion to run based on whether an omnifunc is set, I would
 " rather have it not set.
 if &omnifunc == "ccomplete#Complete"
-  set omnifunc=
+  setlocal omnifunc=
 endif
+
+" The default here seems to be `/*%s*/`, which I tend to use less.
+" NOTE: So as far as I can tell, the `/*%s*/` notation has always been the
+" default `commentstring` on Vim. However, on some newer Neovim versions (e.g.
+" 0.9), there is an additional `c.lua` filetype plugin included with the
+" software that also sets this, and if I want to override that, it seems I need
+" an extra `c.lua` file doing that.
+setlocal commentstring=//\ %s
+
+endif
+

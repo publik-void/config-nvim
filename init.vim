@@ -263,6 +263,7 @@ let g:my_features_list = [
 \ ["basic_editor_setup", 1],
 \ ["symbol_substitution", 1],
 \ ["native_filetype_plugins_config", 1],
+\ ["native_filetype_plugins_overrides", 1],
 \ ["nerdcommenter", 0],
 \ ["vim_commentary", 1],
 \ ["vim_surround", 1],
