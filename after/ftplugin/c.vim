@@ -19,7 +19,13 @@ endif
 " 0.9), there is an additional `c.lua` filetype plugin included with the
 " software that also sets this, and if I want to override that, it seems I need
 " an extra `c.lua` file doing that.
-setlocal commentstring=//\ %s
+setlocal commentstring=//\%s
+
+" `tpope/vim-commentary` adds a space after the comment token by default. In
+" this case, I prefer to not have that.
+if g:loaded_commentary
+  let b:commentary_format = "//%s"
+endif
 
 endif
 
