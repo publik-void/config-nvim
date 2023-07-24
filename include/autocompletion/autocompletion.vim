@@ -14,6 +14,11 @@
 " wonder especially if `virtualedit` or `conceallevel` make a difference here
 " and haven't tested that at the time of writing this comment.
 
+" TODO: I have seen completion happening when pressing backspace in insert mode.
+" Meaning not only opening the menu, but actually accepting some item. This was
+" however on Neovim version 0.4.4, so who knows if this is a problem of my code
+" generally or only the old version stuff.
+
 let g:my_native_autocompletion_suppression_flag = v:false
 let g:my_native_autocompletion_curpos_tracker = [0, -1, -1, 0, 0]
 
