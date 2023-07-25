@@ -26,6 +26,13 @@
 " for detecting a light or dark background. This is unfortunate, as it should be
 " possible to propagate this variable through `tmux`, `ssh`, etc. Still, another
 " problem is that the variable won't be updated on changes.
+" NOTE: As of 2023-07, the solution to get iTerm2 color presets to automatically
+" change based on macOS's dark mode setting involves using a Python script that
+" hooks into iTerm2's Python runtime. I could imagine that adapting such a
+" script appropriately could allow me to also update the background settings of
+" any Neovim child processes accordingly. However, I kind of expect some of
+" these things to be sorted out over the coming years anyway, so I am not sure
+" if I want to put in the effort of creating some hacky "solution" now.
 
 " Let's put this into a function that can be extended with OSC11 and other
 " utilities if I feel the need, and can perhaps be called on certain triggers.
