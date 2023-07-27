@@ -56,7 +56,7 @@ function MyNativeFuzzyFindOpen()
   return ""
 endfunction
 
-" Fuzzy find with meta-/
+" Fuzzy find with Meta+/
 " The idea being that this mapping can be overriden by a fuzzy finding plugin,
 " if any such plugin is enabled
 if v:version > 800 " NOTE: Version is a guess
@@ -64,6 +64,22 @@ if v:version > 800 " NOTE: Version is a guess
 else
   nnoremap <expr> <m-/> MyNativeFuzzyFindOpen()
 endif
+
+" Opens the native help finder `:help` and shows suggestions
+function MyNativeHelpFindOpen()
+  call feedkeys(":help\<space>\<c-i>\<c-p>", "nt")
+  return ""
+endfunction
+
+" Find help tags with Shift+/ (question mark)
+" This is similar to the fuzzy finding above, and also supposed to be overridden
+" by applicable plugins.
+if v:version > 800 " NOTE: Version is a guess
+  nnoremap ? <cmd>call MyNativeHelpFindOpen()<cr>
+else
+  nnoremap <expr> ? MyNativeHelpFindOpen()
+endif
+
 
 " Close buffer with backspace
 if v:version > 800 " NOTE: Version is a guess
