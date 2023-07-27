@@ -84,7 +84,10 @@ endif
 " {{{1 Netrw
 
 " Show a tree-style listing in netrw browser by default
-let g:netrw_liststyle=3
+let g:netrw_liststyle = 3
+
+" Don't create `.netrwhist` files
+let g:netrw_dirhistmax = 0
 
 " {{{1 Command line
 
