@@ -65,8 +65,12 @@ else
   nnoremap <expr> <m-/> MyNativeFuzzyFindOpen()
 endif
 
-" " Switch to alternate file with backspace
-" nnoremap <bs> <c-^>
+" Close buffer with backspace
+if v:version > 800 " NOTE: Version is a guess
+  nnoremap <bs> <cmd>bdelete<cr>
+else
+  nnoremap <silent> <bs> :bdelete<cr>
+endif
 
 " Use Tab and Shift+Tab in normal mode to cycle through buffers
 if v:version > 800 " NOTE: Version is a guess
