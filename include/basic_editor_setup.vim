@@ -50,10 +50,20 @@ set tabstop=2
 " This allows basic fuzzy finding with vanilla Vim
 set path+=**
 
+" Opens the native fuzzy finder `:find` and shows suggestions
+function MyNativeFuzzyFindOpen()
+  call feedkeys(":find\<space>\<c-i>\<c-p>", "nt")
+  return ""
+endfunction
+
 " Fuzzy find with meta-/
-" The idea being that I map the native fuzzy finder `:find` here, but can
-" override this mapping when a fuzzy finding plugin is enabled
-nnoremap <m-/> :call feedkeys(":find \<c-i>\<c-p>", "t")
+" The idea being that this mapping can be overriden by a fuzzy finding plugin,
+" if any such plugin is enabled
+if v:version > 800 " NOTE: Version is a guess
+  nnoremap <m-/> <cmd>call MyNativeFuzzyFindOpen()<cr>
+else
+  nnoremap <expr> <m-/> MyNativeFuzzyFindOpen()
+endif
 
 " " Switch to alternate file with backspace
 " nnoremap <bs> <c-^>
