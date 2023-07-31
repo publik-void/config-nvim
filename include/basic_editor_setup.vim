@@ -220,7 +220,8 @@ set colorcolumn=+1
 
 " {{{1 General keyword highlighting
 
-let s:my_general_keywords = ["TODO", "NOTE", "FIXME", "HACK", "PERF", "WARNING"]
+" Defined globally to be used in other places
+let g:my_general_keywords = ["TODO", "NOTE", "FIXME", "HACK", "PERF", "WARNING"]
 
 " The out-of-the-box highlighting definitions for these are spread out among
 " many language-specific syntax files and thus differ a bit depending on the
@@ -231,9 +232,9 @@ let s:my_general_keywords = ["TODO", "NOTE", "FIXME", "HACK", "PERF", "WARNING"]
 " think this is a case where native Vim functionality provides enough to
 " implement the behavior I want, and hence I would rather just stick with that.
 
-let s:my_general_keywords =
-\ map(copy(s:my_general_keywords), 'StrCat(v:val, ":")') + s:my_general_keywords
-let s:my_general_keywords_pattern = join(s:my_general_keywords, "\\|")
+let g:my_general_keywords =
+\ g:my_general_keywords + map(copy(g:my_general_keywords), 'StrCat(v:val, ":")')
+let s:my_general_keywords_pattern = join(g:my_general_keywords, "\\|")
 
 highlight link MyGeneralKeyword Todo
 

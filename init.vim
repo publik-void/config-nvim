@@ -262,6 +262,7 @@ let g:my_features_list = [
 \ ["my_dim_colorscheme", 1],
 \ ["basic_editor_setup", 1],
 \ ["symbol_substitution", 1],
+\ ["project_grep", 1],
 \ ["native_filetype_plugins_config", 1],
 \ ["native_filetype_plugins_overrides", 1],
 \ ["nerdcommenter", 0],

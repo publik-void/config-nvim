@@ -11,7 +11,7 @@ let s:config_dir = has("nvim-0.3") ? stdpath("config") :
 \   has("win32") || has("win64") ? expand("$HOME/vimfiles") :
 \   expand("$HOME/.vim"))
 
-let s:my_plugins_dir_basename = "plugins"
+let s:my_plugins_dir_basename = ".plugins"
 let s:my_plugins_dir =
 \ StrCat(s:config_dir, "/", s:my_plugins_dir_basename, "/")
 
