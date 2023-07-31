@@ -12,7 +12,7 @@ function MyNativeProjectGrep(grep_string)
   " end of the stack instead of after the current one, freeing all following
   " lists. Also see `:h setqflist()`.
   call setqflist([], " ",
-  \ {"title": StrCat("MyNativeProjectGrep(\"", a:grep_string, "\")")})
+  \ {"title": StrCat("MyNativeProjectGrep ", a:grep_string)})
   for item in items
     " NOTE: We could try and check that the files are not binary using the
     " `file` shell command if it exists on the system, but I think I'm waiting
@@ -36,7 +36,7 @@ function MyNativeProjectGrepCommandCompletion(ArgLead, CmdLine, CursorPos)
 endfunction
 
 command -nargs=1 -complete=customlist,MyNativeProjectGrepCommandCompletion
-\ MyNativeProjectGrep call MyNativeProjectGrep("<args>")
+\ MyNativeProjectGrep call MyNativeProjectGrep(<q-args>)
 
 function MyNativeProjectGrepCommandOpen()
   call feedkeys(":MyNativeProjectGrep\<space>\<c-i>\<c-p>", "nt")
