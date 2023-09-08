@@ -176,11 +176,11 @@ function MyStatusline() abort
 
   " Git statusline field, if the corresponding function exists
   if exists("*MyGitStatuslineField")
-    let statusline = StrCat(statusline, '%{MyGitStatuslineField()}')
+    let statusline = StrCat(statusline, ' %{MyGitStatuslineField()}')
   endif
 
   " Mode, flags, and filetype
-  let statusline = StrCat(statusline, ' [%{mode()}]%m%r%h%w%y ')
+  let statusline = StrCat(statusline, '[%{mode()}]%m%r%h%w%y ')
 
   " Cursor position
   let statusline = StrCat(statusline, '%l:%c%V %P')
