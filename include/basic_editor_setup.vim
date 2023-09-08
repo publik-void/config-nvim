@@ -192,9 +192,15 @@ set laststatus=2
 " {{{1 Numbers and signs columns
 
 " Line Numbering
-set number
+" After having had `relativenumber` and `number` set together for a long time, I
+" have since come to the realization that I don't need to display the current
+" absolute line number in the number column, because I display it in the status
+" bar anyway. The advantage then is that I can keep the number column's width
+" consistent at a `numberwidth` of 3, and this also coincides with the width
+" needed to display signs in the number column.
+set nonumber
 set relativenumber
-set numberwidth=1
+set numberwidth=3
 
 " Don't use an additional sign column ("gutter"), place signs on number columns
 if v:version >= 900 || has("nvim-0.5") " NOTE: Versions are a guess
