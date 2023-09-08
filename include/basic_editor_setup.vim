@@ -174,6 +174,11 @@ function MyStatusline() abort
   " Current file
   let statusline = StrCat(statusline, '%f%=')
 
+  " Git statusline field, if the corresponding function exists
+  if exists("*MyGitStatuslineField")
+    let statusline = StrCat(statusline, '%{MyGitStatuslineField()}')
+  endif
+
   " Mode, flags, and filetype
   let statusline = StrCat(statusline, ' [%{mode()}]%m%r%h%w%y ')
 
