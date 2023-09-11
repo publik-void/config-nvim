@@ -69,14 +69,18 @@ local shellcheck = {
 -- This is by the way what the fish plugins for Vim like `dag/vim-fish` are
 -- doing, among other things, like e.g. leveraging `fish_indent`.
 
-lspconfig.efm.setup{
-  settings = {
-    rootMarkers = {".git/"},
-    languages = {
-      python = {flake8},
-      sh = {shellcheck},
-    }
-  },
-  filetypes = {"python", "sh"},
-  single_file_support = true, -- Unless `efm-langserver -v` < v0.0.38
-}
+-- NOTE: Enclosing this in this `if` here because otherwise an error message
+-- will be printed on every attempt to load a nonexistant `efm-langserver`.
+if vim.fn.executable("efm-langserver") then
+  lspconfig.efm.setup{
+    settings = {
+      rootMarkers = {".git/"},
+      languages = {
+        python = {flake8},
+        sh = {shellcheck},
+      }
+    },
+    filetypes = {"python", "sh"},
+    single_file_support = true, -- Unless `efm-langserver -v` < v0.0.38
+  }
+end
