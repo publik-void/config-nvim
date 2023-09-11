@@ -18,6 +18,8 @@ end
 -- Key mappings
 local builtin = require("telescope.builtin")
 vim.keymap.set("n", "<m-/>", builtin.find_files, {})
-vim.keymap.set("n", "<c-_>", builtin.live_grep,  {}) -- `<c-_>` is ctrl+/
+-- NOTE: ctrl+/ in Vimscript mappings is denoted by `<c-_>`, but in Lua
+-- apparently not.
+vim.keymap.set("n", "<c-/>", builtin.live_grep,  {})
 vim.keymap.set("n",     "?", builtin.help_tags,  {})
 
