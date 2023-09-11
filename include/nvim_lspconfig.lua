@@ -71,7 +71,7 @@ local shellcheck = {
 
 -- NOTE: Enclosing this in this `if` here because otherwise an error message
 -- will be printed on every attempt to load a nonexistant `efm-langserver`.
-if vim.fn.executable("efm-langserver") then
+if vim.fn.executable("efm-langserver") ~= 0 then
   lspconfig.efm.setup{
     settings = {
       rootMarkers = {".git/"},
