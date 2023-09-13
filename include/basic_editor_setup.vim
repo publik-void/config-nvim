@@ -6,9 +6,6 @@
 " Use quoteplus register for clipboard
 set clipboard+=unnamedplus
 
-" Long lines continue left and right instead of wrapping
-set nowrap
-
 " Make some left/right-movements wrap to the previous/next line
 set whichwrap+=<,>,h,l,[,],~
 
@@ -44,6 +41,24 @@ set textwidth=80
 set expandtab
 set shiftwidth=2
 set tabstop=2
+
+" {{{1 Line wrapping
+
+" Wrap long lines instead of continuing left and right off-screen
+set wrap
+
+" Prettify wrapping behavior when `wrap` is on
+set linebreak
+"set breakat= 	!@*-+;:,./?
+set breakindent
+set breakindentopt=min:40,sbr
+set showbreak=\ …
+set cpoptions+=n
+
+" TODO: Is the default for `breakat` fine?
+" TODO: A possibility would be to add a `shift` value to the `breakindentopt`
+" setting that always matches the current `shiftwidth`, using an `autocmd`. I am
+" not yet sure if I would like that more than no shift.
 
 " {{{1 File and buffer switching
 
