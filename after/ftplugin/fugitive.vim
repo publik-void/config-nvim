@@ -20,6 +20,6 @@ nnoremap <buffer> p :Git push<cr>
 if v:version > 800 " NOTE: Version is a guess
   nnoremap <buffer> p <cmd>Git push<cr>
 else
-  nnoremap p :Git push<cr>
+  nnoremap <buffer> p :Git push<cr>
 endif
 
