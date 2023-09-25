@@ -127,7 +127,7 @@ set wildchar=<tab>
 set wildignorecase
 set wildmode=full
 set wildmenu
-if v:version >= 900 || has("nvim-0.5") " NOTE: Versions are a guess
+if v:version >= 900 || has("nvim-0.9") " NOTE: Versions are a guess
   set wildoptions=fuzzy,pum,tagfile
 elseif v:version > 800 || has("nvim-0.4") " NOTE: Versions are a guess
   set wildoptions=pum,tagfile
