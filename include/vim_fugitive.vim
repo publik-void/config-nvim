@@ -1,8 +1,10 @@
 " (the following line is a modeline)
 " vim: foldmethod=marker
 
-if g:loaded_fugitive
-  function! MyGitStatuslineField()
+function! MyGitStatuslineField()
+  if exists("g:loaded_fugitive") && g:loaded_fugitive
     return FugitiveStatusline()
-  endfunction
-endif
+  else
+    return ""
+  endif
+endfunction

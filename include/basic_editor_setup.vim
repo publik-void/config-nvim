@@ -203,8 +203,12 @@ function MyStatusline() abort
   return statusline
 endfunction
 
-" Use custom status line defined above
-set statusline=%!MyStatusline()
+" Use custom status line defined above, or a fast one if necessary
+if g:my_is_slow_host
+  set statusline=%=%<%f%=[%{mode()}]%m%r%h%w%y\ %l:%c%V\ %P
+else
+  set statusline=%!MyStatusline()
+endif
 
 " Always put a status line on every window.
 set laststatus=2

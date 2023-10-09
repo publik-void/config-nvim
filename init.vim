@@ -186,6 +186,10 @@ if has("pythonx") | set pyxversion=3 | endif
 
 " {{{2 Helper definitions
 
+" To be used by the config as an indication that certain behavior should be
+" optimized for slow machines to allow for a more fluid experience.
+let g:my_is_slow_host = hostname() == "lasse-raspberrypi-1"
+
 " A helper function to check from Vimscript if Lua has JIT compilation
 if has("nvim")
 lua << EOF
@@ -276,7 +280,7 @@ let g:my_features_list = [
 \ ["nvim_treesitter", has("nvim-0.5")],
 \ ["nvim_lspconfig", has("nvim-0.8")],
 \ ["nvim_cmp", has("nvim-0.7")],
-\ ["autocompletion", 1],
+\ ["autocompletion", !g:my_is_slow_host],
 \ ["telescope", has("nvim-0.9")],
 \ ["luasnip", has("nvim-0.5")],
 \ ["orgmode", has("nvim-0.8")]]
