@@ -18,8 +18,9 @@ end
 -- Key mappings
 local builtin = require("telescope.builtin")
 vim.keymap.set("n", "<m-/>", builtin.find_files, {})
--- NOTE: ctrl+/ in Vimscript mappings is denoted by `<c-_>`, but in Lua
--- apparently not.
-vim.keymap.set("n", "<c-/>", builtin.live_grep,  {})
+-- NOTE: c-_ means Ctrl + /, but also sets Ctrl + -, which may be the reason I
+-- previsouly thought that the c-/ mapping must be used here after all. Unless
+-- I observed another behavior on another platform or something…?
+vim.keymap.set("n", "<c-_>", builtin.live_grep,  {})
 vim.keymap.set("n",     "?", builtin.help_tags,  {})
 
