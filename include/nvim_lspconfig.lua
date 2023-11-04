@@ -24,7 +24,9 @@ local lspconfig = require("lspconfig")
 -- specified in `Manifest.toml`.
 lspconfig.julials.setup{}
 
--- TODO: Add `clangd`
+-- For C++ et al.
+-- I think I like the default config, for now.
+lspconfig.clangd.setup{}
 
 -- `efm-langserver` translates linter output into LSP
 -- First, the configure linters to use
