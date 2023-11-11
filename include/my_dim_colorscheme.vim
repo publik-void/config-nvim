@@ -22,8 +22,13 @@ function! MyDimModifications() abort
   " of the text, so maybe I should go about this smarter (filetype-specific?)…
   " `PreProc` and `Special` have the same color up to here, so let's assign the
   " now-freed `Identifier` color to `PreProc`.
-  highlight Identifier                   ctermfg=NONE ctermbg=NONE
-  highlight PreProc                      ctermfg=6    ctermbg=NONE
+  highlight Identifier                   ctermfg=NONE
+  highlight PreProc                      ctermfg=6
+
+  " Also, somehow, I am more used to types being yellow and keywords being green
+  " than vice versa and would like to keep it that way…
+  highlight Statement                    ctermfg=2
+  highlight Type                         ctermfg=3
 
   " For my color scheme family, shades of "grayed-out-ness" work as follows:
   " Color                bg=dark bg=light
