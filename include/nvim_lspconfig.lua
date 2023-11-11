@@ -6,6 +6,13 @@
 
 local lspconfig = require("lspconfig")
 
+-- Show diagostics in floating window by pressing return.
+vim.keymap.set('n', '<cr>', vim.diagnostic.open_float)
+
+-- Jump between diagnostics positions
+vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
+vim.keymap.set('n', ']d', vim.diagnostic.goto_next)
+
 -- Julia `LanguageServer.jl`
 -- As of 2023-06, `nvim-lspconfig` uses a default server command that first
 -- looks in `~/.julia/environments/nvim-lspconfig`, and if it doesn't exist or
