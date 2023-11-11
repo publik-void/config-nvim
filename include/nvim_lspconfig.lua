@@ -13,6 +13,9 @@ vim.keymap.set('n', '<cr>', vim.diagnostic.open_float)
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next)
 
+-- Don't show the diagnostic messages as virtual text
+vim.diagnostic.config({ virtual_text = false })
+
 -- Julia `LanguageServer.jl`
 -- As of 2023-06, `nvim-lspconfig` uses a default server command that first
 -- looks in `~/.julia/environments/nvim-lspconfig`, and if it doesn't exist or
