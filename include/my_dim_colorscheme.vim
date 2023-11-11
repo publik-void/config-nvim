@@ -12,6 +12,18 @@ function! MyDimModifications() abort
   highlight Error                        ctermfg=9    ctermbg=NONE
   highlight Todo                         ctermfg=11   ctermbg=NONE
   highlight PmenuThumb                                ctermbg=NONE cterm=inverse
+  highlight MatchParen                   ctermfg=14   ctermbg=NONE
+
+  " NOTE: With treesitter, for many filetypes, basically everything that is not
+  " a comment, a value, a type, a keyword, or punctuation is considered an
+  " identifier, such that pretty much all code is colored. I think that is a bit
+  " overkill, thus I'm disabling the highlighting of identifiers here. This may
+  " be unfortunate for any languages where identifiers are a distinct from most
+  " of the text, so maybe I should go about this smarter (filetype-specific?)…
+  " `PreProc` and `Special` have the same color up to here, so let's assign the
+  " now-freed `Identifier` color to `PreProc`.
+  highlight Identifier                   ctermfg=NONE ctermbg=NONE
+  highlight PreProc                      ctermfg=6    ctermbg=NONE
 
   " For my color scheme family, shades of "grayed-out-ness" work as follows:
   " Color                bg=dark bg=light
