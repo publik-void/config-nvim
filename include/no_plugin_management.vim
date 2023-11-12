@@ -81,7 +81,12 @@ function MyNativeSinglePluginInstall(plugin)
     let command =
     \ StrCat(command, " --branch ", a:plugin["options"]["branch"])
   endif
-  let command = StrCat(command, " https://github.com/", name, ".git")
+  if (has_key(a:plugin, "options") && has_key(a:plugin["options"], "url"))
+    let url = a:plugin["options"]["url"]
+  else
+    let url = StrCat(" https://github.com/", name, ".git")
+  endif
+  let command = StrCat(command, url)
   let command = StrCat(command, " ", path)
   echo system(command)
   if v:shell_error

@@ -283,7 +283,8 @@ let g:my_features_list = [
 \ ["autocompletion", !g:my_is_slow_host],
 \ ["telescope", has("nvim-0.9")],
 \ ["luasnip", has("nvim-0.5")],
-\ ["orgmode", has("nvim-0.8")]]
+\ ["orgmode", 0],
+\ ["guile", 1]]
 
 let g:my_features = {}
 for [feature, is_enabled] in g:my_features_list
@@ -374,7 +375,12 @@ let g:my_plugins = {
 \ "orgmode": {
 \   "name": "orgmode",
 \   "author": "nvim-orgmode",
-\   "options": {}}
+\   "options": {}},
+\ "guile": {
+\   "name": "guile.vim",
+\   "author": "HiPhish",
+\   "options": {
+\     "url": "https://gitlab.com/HiPhish/guile.vim.git"}},
 \ } " Separated this `}` to not unintentionally create a fold marker
 
 " {{{2 Notes about features/plugins
