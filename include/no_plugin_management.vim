@@ -86,7 +86,7 @@ function MyNativeSinglePluginInstall(plugin)
   else
     let url = StrCat(" https://github.com/", name, ".git")
   endif
-  let command = StrCat(command, url)
+  let command = StrCat(command, " ", url)
   let command = StrCat(command, " ", path)
   echo system(command)
   if v:shell_error
