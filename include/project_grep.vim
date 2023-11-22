@@ -1,14 +1,21 @@
 " (the following line is a modeline)
 " vim: foldmethod=marker
 
+" NOTE: When determining file type with the `file` command, some files are
+" falsely determined to be binary. Hence, a list of file formats to whitelist.
+let g:my_native_project_grep_ext_whitelist = ["json"]
+
 function MyNativeProjectGrep(grep_string)
+  let cwd = getcwd()
+  let file_command_executable = executable("file")
+  let ext_whitelist_pattern = join(map(
+  \ copy(g:my_native_project_grep_ext_whitelist),
+  \ {ext -> StrCat(".", ext, '$')}), '\|')
   " NOTE: This relies on the current working directory being the project root.
   " NOTE: Could use `&path` here instead of the working directory, but it may
   " contain things like `/usr/include` which makes it overkill for this case.
   " NOTE: This ignores hidden files and directories, maybe that's a good thing.
   let items = globpath(".", "**", v:false, v:true)
-  let file_command_executable = executable("file")
-  let cwd = getcwd()
   " NOTE: In the third argument, add `"nr": "$"` to add the quickfix list at the
   " end of the stack instead of after the current one, freeing all following
   " lists. Also see `:h setqflist()`.
@@ -19,8 +26,10 @@ function MyNativeProjectGrep(grep_string)
   for item in items
     let use = filereadable(item)
     if file_command_executable
-      let output = systemlist(StrCat("file --mime-encoding ", cwd, "/", item))
-      let use = use && (match(output, "binary$") == -1)
+      if match(item, ext_whitelist_pattern) == -1
+        let output = systemlist(StrCat("file --mime-encoding ", cwd, "/", item))
+        let use = use && (match(output, 'binary$') == -1)
+      end
     endif
     if use
       let i_used_files += 1
