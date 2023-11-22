@@ -7,6 +7,7 @@ let g:my_native_project_grep_ext_whitelist = ["json"]
 
 function MyNativeProjectGrep(grep_string)
   let file_command_executable = executable("file")
+  if ! has("lambda") | throw "no lambda support" | endif
   let ext_whitelist_pattern = join(map(
   \ copy(g:my_native_project_grep_ext_whitelist),
   \ {i, ext -> StrCat(".", ext, '$')}), '\|')
