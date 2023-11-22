@@ -6,16 +6,17 @@
 let g:my_native_project_grep_ext_whitelist = ["json"]
 
 function MyNativeProjectGrep(grep_string)
-  let cwd = getcwd()
   let file_command_executable = executable("file")
   let ext_whitelist_pattern = join(map(
   \ copy(g:my_native_project_grep_ext_whitelist),
-  \ {ext -> StrCat(".", ext, '$')}), '\|')
+  \ {i, ext -> StrCat(".", ext, '$')}), '\|')
   " NOTE: This relies on the current working directory being the project root.
   " NOTE: Could use `&path` here instead of the working directory, but it may
   " contain things like `/usr/include` which makes it overkill for this case.
   " NOTE: This ignores hidden files and directories, maybe that's a good thing.
-  let items = globpath(".", "**", v:false, v:true)
+  " NOTE: I noticed that running the below line in command mode may result in
+  " something different from running it inside this function. No idea why.
+  let items = globpath(getcwd(), "**", v:false, v:true)
   " NOTE: In the third argument, add `"nr": "$"` to add the quickfix list at the
   " end of the stack instead of after the current one, freeing all following
   " lists. Also see `:h setqflist()`.
@@ -25,10 +26,10 @@ function MyNativeProjectGrep(grep_string)
   let i_matched_files = 0
   for item in items
     let use = filereadable(item)
-    if file_command_executable
+    if use && file_command_executable
       if match(item, ext_whitelist_pattern) == -1
-        let output = systemlist(StrCat("file --mime-encoding ", cwd, "/", item))
-        let use = use && (match(output, 'binary$') == -1)
+        let output = systemlist(StrCat("file --mime-encoding ", item))
+        let use = (match(output, 'binary$') == -1)
       end
     endif
     if use
