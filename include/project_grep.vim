@@ -14,7 +14,8 @@ function MyNativeProjectGrep(grep_string)
   " lists. Also see `:h setqflist()`.
   call setqflist([], " ",
   \ {"title": StrCat("MyNativeProjectGrep ", a:grep_string)})
-  let i = 0
+  let i_used_files = 0
+  let i_matched_files = 0
   for item in items
     let use = filereadable(item)
     if file_command_executable
@@ -22,14 +23,19 @@ function MyNativeProjectGrep(grep_string)
       let use = use && (match(output, "binary$") == -1)
     endif
     if use
-      let i = i + 1
+      let i_used_files += 1
+      let n_before = getqflist({"size": 0})["size"]
       silent! execute StrCat("hide vimgrepadd /", a:grep_string, "/j ", item)
+      let n_after = getqflist({"size": 0})["size"]
+      if n_after > n_before
+        let i_matched_files += 1
+      endif
     " else
     "   echo StrCat("ignoring ", item)
     endif
   endfor
-  echo StrCat(getqflist({"size": 0})["size"], " matches in ", i, " of ",
-  \ len(items), " files")
+  echo StrCat(getqflist({"size": 0})["size"], " matches in ", i_matched_files,
+  \ " files (searched ", i_used_files, " of ", len(items), " non-hidden)")
   copen
 endfunction
 
