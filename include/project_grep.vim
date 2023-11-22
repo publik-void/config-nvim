@@ -15,8 +15,6 @@ function MyNativeProjectGrep(grep_string)
   " NOTE: Could use `&path` here instead of the working directory, but it may
   " contain things like `/usr/include` which makes it overkill for this case.
   " NOTE: This ignores hidden files and directories, maybe that's a good thing.
-  " NOTE: I noticed that running the below line in command mode may result in
-  " something different from running it inside this function. No idea why.
   let items = globpath(getcwd(), "**", v:false, v:true)
   " NOTE: In the third argument, add `"nr": "$"` to add the quickfix list at the
   " end of the stack instead of after the current one, freeing all following
