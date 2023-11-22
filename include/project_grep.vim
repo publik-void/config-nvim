@@ -7,23 +7,29 @@ function MyNativeProjectGrep(grep_string)
   " contain things like `/usr/include` which makes it overkill for this case.
   " NOTE: This ignores hidden files and directories, maybe that's a good thing.
   let items = globpath(".", "**", v:false, v:true)
-
+  let file_command_executable = executable("file")
+  let cwd = getcwd()
   " NOTE: In the third argument, add `"nr": "$"` to add the quickfix list at the
   " end of the stack instead of after the current one, freeing all following
   " lists. Also see `:h setqflist()`.
   call setqflist([], " ",
   \ {"title": StrCat("MyNativeProjectGrep ", a:grep_string)})
+  let i = 0
   for item in items
-    " NOTE: We could try and check that the files are not binary using the
-    " `file` shell command if it exists on the system, but I think I'm waiting
-    " with implementing that until I see that I actually could need that.
-    let i = 0
-    if filereadable(item)
-      echo StrCat(i, "/", len(items))
+    let use = filereadable(item)
+    if file_command_executable
+      let output = systemlist(StrCat("file --mime-encoding ", cwd, "/", item))
+      let use = use && (match(output, "binary$") == -1)
+    endif
+    if use
+      let i = i + 1
       silent! execute StrCat("hide vimgrepadd /", a:grep_string, "/j ", item)
+    " else
+    "   echo StrCat("ignoring ", item)
     endif
   endfor
-  echo StrCat(getqflist({"size": 0})["size"], " matches")
+  echo StrCat(getqflist({"size": 0})["size"], " matches in ", i, " of ",
+  \ len(items), " files")
   copen
 endfunction
 
