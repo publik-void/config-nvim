@@ -69,15 +69,24 @@ endfunction
 " However, really old versions only support the single dot. This is unfortunate
 " as I want (or need) to retain compatibility. Thus, let's do it with this
 " function.
-if v:version > 800 " NOTE: Version is a guess
-  function StrCat(x, ...)
-    let str = a:x | for x in a:000 | let str ..= x | endfor | return str
-  endfunction
-else
-  function StrCat(x, ...)
-    let str = a:x | for x in a:000 | let str .= x | endfor | return str
-  endfunction
-endif
+" if v:version > 800 " NOTE: Version is a guess
+"   function StrCat(x, ...)
+"     let str = a:x | for x in a:000 | let str ..= x | endfor | return str
+"   endfunction
+" else
+"   function StrCat(x, ...)
+"     let str = a:x | for x in a:000 | let str .= x | endfor | return str
+"   endfunction
+" endif
+"
+" NOTE: It's simpler and more efficient to define the above function in terms of
+" `join`. I even measured, and at least for big `a:000` (though this is probably
+" seldom the case) it definitely makes a difference.
+function StrCat(x, ...)
+  " NOTE: We could use `insert` instead of `+` here, but it looks like `a:000`
+  " is immutable, so a copy has to be made anyway.
+  return join([a:x] + a:000, "")
+endfunction
 
 " A helper variable that contains the absolute path to the directory where this
 " `init.vim` resides, even if the running vim used an initialization file that
