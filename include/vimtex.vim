@@ -23,7 +23,7 @@ let g:vimtex_parser_bib_backend = executable("bibtex") ? "bibtex" : "vim"
 " compilation is triggered unless the last one hasn't finished, or the function
 " makes sure a continuous compilation is running and starts one if not.
 function MyVimtexCompileUnlessRunning()
-  if g:loaded_vimtex && !b:vimtex.compiler.is_running()
+  if g:loaded_vimtex && exists("b:vimtex") && !b:vimtex.compiler.is_running()
     VimtexCompile
   endif
 endfunction
