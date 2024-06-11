@@ -1,6 +1,7 @@
 if !exists("g:my_features") ||
 \ g:my_features["native_filetype_plugins_overrides"]
 
+" Seems like this is not set by default, so I'm setting it manually
 setlocal commentstring=//\%s
 
 " `tpope/vim-commentary` adds a space after the comment token by default. In
