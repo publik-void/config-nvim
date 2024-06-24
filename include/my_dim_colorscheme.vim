@@ -44,7 +44,7 @@ function! MyDimModifications() abort
     highlight SignColumn                 ctermfg=15   ctermbg=NONE
     highlight Whitespace                 ctermfg=15
     highlight NonText                    ctermfg=15
-    highlight ColorColumn                ctermfg=8    ctermbg=15
+    highlight ColorColumn                ctermfg=8    ctermbg=15   cterm=NONE
     highlight StatusLineNC               ctermfg=7    ctermbg=NONE cterm=inverse
     highlight StatusLineWeak             ctermfg=NONE ctermbg=7    cterm=inverse
     highlight StatusLineNCWeak           ctermfg=7    ctermbg=15   cterm=inverse
@@ -58,7 +58,7 @@ function! MyDimModifications() abort
     highlight SignColumn                 ctermfg=8    ctermbg=NONE
     highlight Whitespace                 ctermfg=8
     highlight NonText                    ctermfg=8
-    highlight ColorColumn                ctermfg=15   ctermbg=8
+    highlight ColorColumn                ctermfg=15   ctermbg=8    cterm=NONE
     highlight StatusLineNC               ctermfg=0    ctermbg=NONE cterm=inverse
     highlight StatusLineWeak             ctermfg=NONE ctermbg=0    cterm=inverse
     highlight StatusLineNCWeak           ctermfg=0    ctermbg=8    cterm=inverse
