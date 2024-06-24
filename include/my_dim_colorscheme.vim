@@ -9,10 +9,10 @@ function! MyDimModifications() abort
 
   highlight Folded                       ctermfg=NONE ctermbg=NONE cterm=bold
   highlight StatusLine                   ctermfg=NONE ctermbg=NONE cterm=inverse
-  highlight Error                        ctermfg=9    ctermbg=NONE
-  highlight Todo                         ctermfg=11   ctermbg=NONE
+  highlight Error                        ctermfg=9    ctermbg=NONE cterm=NONE
+  highlight Todo                         ctermfg=11   ctermbg=NONE cterm=NONE
   highlight PmenuThumb                                ctermbg=NONE cterm=inverse
-  highlight MatchParen                   ctermfg=14   ctermbg=NONE
+  highlight MatchParen                   ctermfg=14   ctermbg=NONE cterm=NONE
 
   " NOTE: With treesitter, for many filetypes, basically everything that is not
   " a comment, a value, a type, a keyword, or punctuation is considered an
@@ -38,34 +38,36 @@ function! MyDimModifications() abort
   " Foreground, extreme  7       0
 
   if &background == "light"
-    highlight Comment                    ctermfg=7
-    highlight LineNr                     ctermfg=15
-    highlight CursorLineNr               ctermfg=7
-    highlight SignColumn                 ctermfg=15   ctermbg=NONE
-    highlight Whitespace                 ctermfg=15
-    highlight NonText                    ctermfg=15
+    highlight Comment                    ctermfg=7                 cterm=NONE
+    highlight LineNr                     ctermfg=15                cterm=NONE
+    highlight CursorLineNr               ctermfg=7                 cterm=NONE
+    highlight SignColumn                 ctermfg=15   ctermbg=NONE cterm=NONE
+    highlight Whitespace                 ctermfg=15                cterm=NONE
+    highlight NonText                    ctermfg=15                cterm=NONE
     highlight ColorColumn                ctermfg=8    ctermbg=15   cterm=NONE
     highlight StatusLineNC               ctermfg=7    ctermbg=NONE cterm=inverse
     highlight StatusLineWeak             ctermfg=NONE ctermbg=7    cterm=inverse
     highlight StatusLineNCWeak           ctermfg=7    ctermbg=15   cterm=inverse
-    highlight Pmenu                      ctermfg=NONE ctermbg=15
+    highlight Pmenu                      ctermfg=NONE ctermbg=15   cterm=NONE
     highlight PmenuSel                   ctermfg=NONE ctermbg=15   cterm=inverse
-    highlight PmenuSbar                               ctermbg=7
+    highlight PmenuSbar                               ctermbg=7    cterm=NONE
   else
-    highlight Comment                    ctermfg=0
-    highlight LineNr                     ctermfg=8
-    highlight CursorLineNr               ctermfg=0
-    highlight SignColumn                 ctermfg=8    ctermbg=NONE
-    highlight Whitespace                 ctermfg=8
-    highlight NonText                    ctermfg=8
+    highlight Comment                    ctermfg=0                 cterm=NONE
+    highlight LineNr                     ctermfg=8                 cterm=NONE
+    highlight CursorLineNr               ctermfg=0                 cterm=NONE
+    highlight SignColumn                 ctermfg=8    ctermbg=NONE cterm=NONE
+    highlight Whitespace                 ctermfg=8                 cterm=NONE
+    highlight NonText                    ctermfg=8                 cterm=NONE
     highlight ColorColumn                ctermfg=15   ctermbg=8    cterm=NONE
     highlight StatusLineNC               ctermfg=0    ctermbg=NONE cterm=inverse
     highlight StatusLineWeak             ctermfg=NONE ctermbg=0    cterm=inverse
     highlight StatusLineNCWeak           ctermfg=0    ctermbg=8    cterm=inverse
-    highlight Pmenu                      ctermfg=NONE ctermbg=8
+    highlight Pmenu                      ctermfg=NONE ctermbg=8    cterm=NONE
     highlight PmenuSel                   ctermfg=NONE ctermbg=8    cterm=inverse
-    highlight PmenuSbar                               ctermbg=0
+    highlight PmenuSbar                               ctermbg=0    cterm=NONE
   endif
+
+  highlight! link NormalFloat Pmenu
 
   if !has("nvim")
     " NOTE: It seems the linking has to be done in this very particular way. (?)
