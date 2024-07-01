@@ -291,7 +291,7 @@ let g:my_features_list = [
 \ ["nvim_cmp", has("nvim-0.7")],
 \ ["autocompletion", !g:my_is_slow_host],
 \ ["telescope", has("nvim-0.9")],
-\ ["luasnip", has("nvim-0.5")],
+\ ["luasnip", has("nvim-0.7")],
 \ ["orgmode", 0],
 \ ["guile", 1]]
 
