@@ -42,6 +42,9 @@ lspconfig.julials.setup{}
 -- I think I like the default config, for now.
 lspconfig.clangd.setup{}
 
+-- For Javascript/Typescript
+lspconfig.tsserver.setup{}
+
 -- For Python
 lspconfig.jedi_language_server.setup{}
 
@@ -95,12 +98,12 @@ if vim.fn.executable("efm-langserver") ~= 0 then
     settings = {
       rootMarkers = {".git/"},
       languages = {
-        -- python = {flake8},
+        python = {flake8},
         sh = {shellcheck},
       }
     },
-    -- filetypes = {"python", "sh"},
-    filetypes = {"sh"},
+    filetypes = {"python", "sh"},
+    -- filetypes = {"sh"},
     single_file_support = true, -- Unless `efm-langserver -v` < v0.0.38
   }
 end
