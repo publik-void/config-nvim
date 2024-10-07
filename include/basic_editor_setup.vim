@@ -30,7 +30,7 @@ set ttimeoutlen=20
 " By default, don't conceal
 set conceallevel=0
 
-" {{{1 Text format defaults (indenting, maximum width)
+" {{{1 Text format defaults
 
 " I want this in most cases, therefore let's set it globally. Filetype scripts,
 " modelines, etc. can be used to change it when needed.
@@ -41,6 +41,9 @@ set textwidth=80
 set expandtab
 set shiftwidth=2
 set tabstop=2
+
+" NOTE: Looks like `j` is default in Neovim but not in Vim
+set formatoptions+=j
 
 " {{{1 Line wrapping
 
