@@ -1,13 +1,9 @@
-" (the following line is a modeline)
 " vim: foldmethod=marker
 
 " {{{1 Miscellaneous
 
 " Use quoteplus register for clipboard
 set clipboard+=unnamedplus
-
-" Make some left/right-movements wrap to the previous/next line
-set whichwrap+=<,>,h,l,[,],~
 
 " Lazy redrawing can help with slow scrolling and I have observed this myself. I
 " bet it also reduces resource consumption. I have been wondering whether some
@@ -29,6 +25,24 @@ set ttimeoutlen=20
 
 " By default, don't conceal
 set conceallevel=0
+
+" {{{1 Cursor movements and jumps
+
+" Make some left/right-movements wrap to the previous/next line
+set whichwrap+=<,>,h,l,[,],~
+
+" Mappings to jump through quickfix and location lists
+if v:version > 800 " NOTE: Version is a guess
+  nnoremap ]e <cmd>cnext<cr>
+  nnoremap [e <cmd>cprevious<cr>
+  nnoremap ]l <cmd>lnext<cr>
+  nnoremap [l <cmd>lprevious<cr>
+else
+  nnoremap <silent> ]e :cnext<cr>
+  nnoremap <silent> [e :cprevious<cr>
+  nnoremap <silent> ]l :lnext<cr>
+  nnoremap <silent> [l :lprevious<cr>
+endif
 
 " {{{1 Text format defaults
 
@@ -106,13 +120,16 @@ else
   nnoremap <silent> <bs> :bdelete<cr>
 endif
 
-" Use Tab and Shift+Tab in normal mode to cycle through buffers
+" Use [b and ]b in normal mode to cycle through buffers
+" NOTE: I had previously mapped this to Tab and Shift+Tab. However, it turns out
+" that Tab and Ctrl+I have identical key codes (as sent by the terminal), so
+" overriding Tab overrides the default Ctrl+I behavior.
 if v:version > 800 " NOTE: Version is a guess
-  nnoremap <tab> <cmd>bnext<cr>
-  nnoremap <s-tab> <cmd>bprevious<cr>
+  nnoremap ]b <cmd>bnext<cr>
+  nnoremap [b <cmd>bprevious<cr>
 else
-  nnoremap <silent> <tab> :bnext<cr>
-  nnoremap <silent> <s-tab> :bprevious<cr>
+  nnoremap <silent> ]b :bnext<cr>
+  nnoremap <silent> [b :bprevious<cr>
 endif
 
 " {{{1 Netrw
