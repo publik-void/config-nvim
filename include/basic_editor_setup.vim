@@ -113,11 +113,22 @@ else
 endif
 
 
+" Netrw does often not close when not `:bdelete`d explicitly with the buffer
+" number. Hence this function.
+function MyBufferClose()
+  let buffer_number = bufnr("%")
+  if getbufvar(buffer_number, '&filetype') == "netrw"
+    execute StrCat("bwipeout ", buffer_number)
+  else
+    execute "bdelete"
+  end
+endfunction
+
 " Close buffer with backspace
 if v:version > 800 " NOTE: Version is a guess
-  nnoremap <bs> <cmd>bdelete<cr>
+  nnoremap <bs> <cmd>call MyBufferClose()<cr>
 else
-  nnoremap <silent> <bs> :bdelete<cr>
+  nnoremap <expr> <bs> MyBufferClose()
 endif
 
 " Use [b and ]b in normal mode to cycle through buffers
