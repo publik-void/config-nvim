@@ -134,8 +134,8 @@ endif
 
 " {{{1 Netrw
 
-" Show a tree-style listing in netrw browser by default
-let g:netrw_liststyle = 3
+" The tree-style listing (3) may be better, but is a can of worms
+let g:netrw_liststyle = 0
 
 " Don't create `.netrwhist` files
 let g:netrw_dirhistmax = 0
