@@ -43,7 +43,7 @@ lspconfig.julials.setup{}
 lspconfig.clangd.setup{}
 
 -- For Javascript/Typescript
-lspconfig.tsserver.setup{}
+lspconfig.ts_ls.setup{}
 
 -- For Python
 lspconfig.jedi_language_server.setup{}

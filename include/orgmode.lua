@@ -1,5 +1,5 @@
-orgmode = require("orgmode")
-nvim_treesitter_configs = require('nvim-treesitter.configs')
+local orgmode = require("orgmode")
+local nvim_treesitter_configs = require('nvim-treesitter.configs')
 
 -- TODO: The below code is mostly just copied from the plugin readme file.
 -- -> Configure this.
