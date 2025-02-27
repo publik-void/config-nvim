@@ -282,7 +282,8 @@ set colorcolumn=+1
 " {{{1 General keyword highlighting
 
 " Defined globally to be used in other places
-let g:my_general_keywords = ["TODO", "NOTE", "FIXME", "HACK", "PERF", "WARNING"]
+let g:my_general_keywords = [
+\ "TODO", "NOTE", "DONE", "FIXME", "HACK", "PERF", "WARNING"]
 
 " The out-of-the-box highlighting definitions for these are spread out among
 " many language-specific syntax files and thus differ a bit depending on the
