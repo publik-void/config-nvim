@@ -375,8 +375,11 @@ if v:version > 800 " NOTE: Version is a guess
 else
   nnoremap <silent> /<cr> :nohlsearch<cr>
 endif
-nnoremap - :%s///g<left><left><left>
-nnoremap _ :%s///g<left><left><left><c-r><c-w><right>
+
+" Disabled these for now because they are not that hard to do without a mapping
+" and it turns out that the `-` and `_` motions may be quite useful.
+" nnoremap - :%s///g<left><left><left>
+" nnoremap _ :%s///g<left><left><left><c-r><c-w><right>
 
 " Search wraps at top and bottom of file
 set wrapscan
