@@ -45,6 +45,9 @@ lspconfig.clangd.setup{}
 -- For Javascript/Typescript
 lspconfig.ts_ls.setup{}
 
+-- For R
+require'lspconfig'.r_language_server.setup{}
+
 -- For Python
 lspconfig.jedi_language_server.setup{}
 
