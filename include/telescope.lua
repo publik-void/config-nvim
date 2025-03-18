@@ -22,5 +22,6 @@ vim.keymap.set("n", "<m-/>", builtin.find_files, {})
 -- This is confusing. Seems I need both mappings.
 vim.keymap.set("n", "<c-_>", builtin.live_grep,  {})
 vim.keymap.set("n", "<c-/>", builtin.live_grep,  {})
-vim.keymap.set("n",     "?", builtin.help_tags,  {})
+-- Disabled for now
+-- vim.keymap.set("n",     "?", builtin.help_tags,  {})
 
