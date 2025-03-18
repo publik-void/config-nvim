@@ -106,11 +106,12 @@ endfunction
 " Find help tags with Shift+/ (question mark)
 " This is similar to the fuzzy finding above, and also supposed to be overridden
 " by applicable plugins.
-if v:version > 800 " NOTE: Version is a guess
-  nnoremap ? <cmd>call MyNativeHelpFindOpen()<cr>
-else
-  nnoremap <expr> ? MyNativeHelpFindOpen()
-endif
+" Disabled for now because reverse search can be quite useful after all.
+" if v:version > 800 " NOTE: Version is a guess
+"   nnoremap ? <cmd>call MyNativeHelpFindOpen()<cr>
+" else
+"   nnoremap <expr> ? MyNativeHelpFindOpen()
+" endif
 
 
 " Netrw does often not close when not `:bdelete`d explicitly with the buffer
