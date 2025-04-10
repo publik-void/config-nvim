@@ -24,4 +24,6 @@ vim.keymap.set("n", "<c-_>", builtin.live_grep,  {})
 vim.keymap.set("n", "<c-/>", builtin.live_grep,  {})
 -- Disabled for now
 -- vim.keymap.set("n",     "?", builtin.help_tags,  {})
+-- TODO: I have to see if this overrides the `<tab>` mapping of `luasnip`
+vim.keymap.set("n", "<tab>", builtin.buffers, {})
 
