@@ -17,13 +17,11 @@ end
 
 -- Key mappings
 local builtin = require("telescope.builtin")
-vim.keymap.set("n", "<m-/>", builtin.find_files, {})
+vim.keymap.set("n", "<c-space>", builtin.buffers, {})
+vim.keymap.set("n", "<m-space>", builtin.find_files, {})
 -- NOTE: c-_ means Ctrl + /, but also/instead sets Ctrl + - on some platforms.
 -- This is confusing. Seems I need both mappings.
 vim.keymap.set("n", "<c-_>", builtin.live_grep,  {})
 vim.keymap.set("n", "<c-/>", builtin.live_grep,  {})
--- Disabled for now
--- vim.keymap.set("n",     "?", builtin.help_tags,  {})
--- TODO: I have to see if this overrides the `<tab>` mapping of `luasnip`
-vim.keymap.set("n", "<tab>", builtin.buffers, {})
+vim.keymap.set("n", "<m-/>", builtin.help_tags,  {})
 

@@ -88,13 +88,13 @@ function MyNativeFuzzyFindOpen()
   return ""
 endfunction
 
-" Fuzzy find with Meta+/
+" Fuzzy find with Meta+Space
 " The idea being that this mapping can be overriden by a fuzzy finding plugin,
 " if any such plugin is enabled
 if v:version > 800 " NOTE: Version is a guess
-  nnoremap <m-/> <cmd>call MyNativeFuzzyFindOpen()<cr>
+  nnoremap <m-space> <cmd>call MyNativeFuzzyFindOpen()<cr>
 else
-  nnoremap <expr> <m-/> MyNativeFuzzyFindOpen()
+  nnoremap <expr> <m-space> MyNativeFuzzyFindOpen()
 endif
 
 " Opens the native help finder `:help` and shows suggestions
@@ -103,15 +103,24 @@ function MyNativeHelpFindOpen()
   return ""
 endfunction
 
-" Find help tags with Shift+/ (question mark)
+" Find help tags with Meta+/
 " This is similar to the fuzzy finding above, and also supposed to be overridden
 " by applicable plugins.
-" Disabled for now because reverse search can be quite useful after all.
-" if v:version > 800 " NOTE: Version is a guess
-"   nnoremap ? <cmd>call MyNativeHelpFindOpen()<cr>
-" else
-"   nnoremap <expr> ? MyNativeHelpFindOpen()
-" endif
+if v:version > 800 " NOTE: Version is a guess
+  nnoremap <m-/> <cmd>call MyNativeHelpFindOpen()<cr>
+else
+  nnoremap <expr> <m-/> MyNativeHelpFindOpen()
+endif
+
+
+" Show buffer list with Ctrl+Space
+" This is similar to the fuzzy finding above, and also supposed to be overridden
+" by applicable plugins (e.g. interactive buffer pickers).
+if v:version > 800 " NOTE: Version is a guess
+  nnoremap <c-space> <cmd>ls<cr>
+else
+  nnoremap <c-space> :ls<cr>
+endif
 
 
 " Netrw does often not close when not `:bdelete`d explicitly with the buffer
