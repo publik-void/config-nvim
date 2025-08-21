@@ -276,6 +276,7 @@ let g:my_features_list = [
 \ ["basic_editor_setup", 1],
 \ ["symbol_substitution", 1],
 \ ["project_grep", 1],
+\ ["custom_html_slides_folding", 1],
 \ ["native_filetype_plugins_config", 1],
 \ ["native_filetype_plugins_overrides", 1],
 \ ["nerdcommenter", 0],
