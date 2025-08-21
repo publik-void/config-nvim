@@ -200,8 +200,8 @@ EOF
 " Lua in modelines doesn't run due to sandboxing (not even with `set
 " modelineexpr`). Setup can be done instead by calling this function.
 function MyCustomHtmlSlidesFoldSetup()
-  set foldmethod=expr
-  set foldexpr=luaeval('my_htmlslides.foldexpr()')
-  set foldtext=luaeval('my_htmlslides.foldtext()')
+  setlocal foldmethod=expr
+  setlocal foldexpr=luaeval('my_htmlslides.foldexpr()')
+  setlocal foldtext=luaeval('my_htmlslides.foldtext()')
 endfunction
 
