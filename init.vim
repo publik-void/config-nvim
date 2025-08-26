@@ -287,6 +287,7 @@ let g:my_features_list = [
 \ ["vimtex", 1],
 \ ["julia_vim", 0 && executable("julia")],
 \ ["vim_asciidoc_folding", 1],
+\ ["stan_vim", 1],
 \ ["nvim_treesitter", has("nvim-0.5")],
 \ ["nvim_lspconfig", has("nvim-0.8")],
 \ ["nvim_cmp", has("nvim-0.7")],
@@ -345,6 +346,10 @@ let g:my_plugins = {
 \ "vim_asciidoc_folding": {
 \   "name": "vim-asciidoc-folding",
 \   "author": "matcatc",
+\   "options": {}},
+\ "stan_vim": {
+\   "name": "stan-vim",
+\   "author": "eigenfoo",
 \   "options": {}},
 \ "nvim_treesitter": {
 \   "name": "nvim-treesitter",
