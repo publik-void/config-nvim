@@ -17,8 +17,7 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next)
 vim.diagnostic.config({ virtual_text = false })
 
 -- `scheme-lsp-server` for Guile Scheme
--- Defaults seem fine for now.
-lspconfig.guile_ls.setup{}
+vim.lsp.enable("guile_ls")
 
 -- Julia `LanguageServer.jl`
 -- As of 2023-06, `nvim-lspconfig` uses a default server command that first
@@ -36,25 +35,28 @@ lspconfig.guile_ls.setup{}
 -- code it gets to see has the same version as the Julia process running the
 -- server or whether it actually respects a project's Julia version as
 -- specified in `Manifest.toml`.
-lspconfig.julials.setup{}
+vim.lsp.enable("julials")
 
 -- For C++ et al.
--- I think I like the default config, for now.
-lspconfig.clangd.setup{}
+vim.lsp.enable("clangd")
 
 -- For Javascript/Typescript
-lspconfig.ts_ls.setup{}
+vim.lsp.enable("ts_ls")
 
 -- For R
-require'lspconfig'.r_language_server.setup{}
+vim.lsp.enable("r_language_server")
 
 -- For Python
-lspconfig.jedi_language_server.setup{}
+vim.lsp.enable("jedi_language_server")
 
--- `efm-langserver` translates linter output into LSP
--- First, the configure linters to use
+-- `efm-langserver` translates linter (or formatter, etc.) output into LSP
+-- First, the configured linters to use
 
--- efm-langserver` tool: `flake8` with inline configuration
+-- Some of these tools need a saved file. It is possible to work around this
+-- with a wrapper script that saves the unsaved buffer to a temporary file, but
+-- I think I'm fine with only the disk-saved file being linted.
+
+-- `efm-langserver` tool: `flake8` with inline configuration
 local flake8 = {
   lintCommand = "flake8 " ..
     "--ignore=" ..
@@ -79,34 +81,54 @@ local flake8 = {
       "W504 " ..
     -- "--max-line-length=80" ..
     "--indent-size=2 ",
-  lintFormats = {"%f:%l:%c: %m"}}
+  lintFormats = {"%f:%l:%c: %m"},
+  lintSource = "flake8"}
 
--- efm-langserver tool: `shellcheck`
+-- `efm-langserver` tool: `shellcheck`
 local shellcheck = {
-  lintCommand = "shellcheck --format=gcc --external-sources",
-  lintSource = "shellcheck",
+  lintCommand = "shellcheck --color=never --format=gcc --external-sources",
   lintFormats = {
     "%f:%l:%c: %trror: %m",
     "%f:%l:%c: %tarning: %m",
-    "%f:%l:%c: %tote: %m"}}
+    "%f:%l:%c: %tote: %m"},
+  lintSource = "shellcheck"}
+
+-- `efm-langserver` tool: `fish`
+local fish = {
+  lintCommand = [[fish --no-config --no-execute ${INPUT} 2>&1]],
+  lintIgnoreExitCode = true,
+  lintFormats = { "%f (line %l): %m" },
+  lintSource = "fish"}
+
+-- `efm-langserver` tool: `stanc`
+local stanc = {
+  lintCommand = "stanc --warn-pedantic --warn-uninitialized ${INPUT}",
+  lintIgnoreExitCode = true,
+  -- The message format is not systematic, hence trying to parse the
+  -- messages is a nontrivial task. I'm sticking with simply displaying
+  -- the full STDERR output in the first buffer line as a warning.
+  lintFormats = {"%m"},
+  lintSeverity = 2,
+  lintSource = "stanc"}
 
 -- I tried to set up `fish --no-execute --debug=…` as a linter here but failed.
 -- This is by the way what the fish plugins for Vim like `dag/vim-fish` are
 -- doing, among other things, like e.g. leveraging `fish_indent`.
 
--- NOTE: Enclosing this in this `if` here because otherwise an error message
--- will be printed on every attempt to load a nonexistant `efm-langserver`.
-if vim.fn.executable("efm-langserver") ~= 0 then
-  lspconfig.efm.setup{
-    settings = {
-      rootMarkers = {".git/"},
-      languages = {
-        python = {flake8},
-        sh = {shellcheck},
-      }
-    },
-    filetypes = {"python", "sh"},
-    -- filetypes = {"sh"},
-    single_file_support = true, -- Unless `efm-langserver -v` < v0.0.38
-  }
-end
+-- NOTE: I had this `if`-condition here to suppress errors when `efm-langserver`
+-- is missing, but I think I don't need it anymore.
+-- if vim.fn.executable("efm-langserver") ~= 0 then
+vim.lsp.config("efm", {
+  init_options = {documentFormatting = false},
+  filetypes = {"python", "sh", "bash", "zsh", "fish", "stan"},
+  settings = {
+    -- rootMarkers = {".git/"},
+    languages = {
+      python = {flake8},
+      sh = {shellcheck},
+      bash = {shellcheck},
+      zsh = {shellcheck},
+      fish = {fish},
+      stan = {stanc}}}})
+vim.lsp.enable("efm")
+

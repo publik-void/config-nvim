@@ -279,6 +279,7 @@ let g:my_features_list = [
 \ ["custom_html_slides_folding", 1],
 \ ["native_filetype_plugins_config", 1],
 \ ["native_filetype_plugins_overrides", 1],
+\ ["nvim_lspconfig", has("nvim-0.11")],
 \ ["nerdcommenter", 0],
 \ ["vim_commentary", 1],
 \ ["vim_surround", 1],
@@ -289,7 +290,6 @@ let g:my_features_list = [
 \ ["vim_asciidoc_folding", 1],
 \ ["stan_vim", 1],
 \ ["nvim_treesitter", has("nvim-0.5")],
-\ ["nvim_lspconfig", has("nvim-0.8")],
 \ ["nvim_cmp", has("nvim-0.7")],
 \ ["autocompletion", !g:my_is_slow_host],
 \ ["telescope", has("nvim-0.9")],
@@ -315,6 +315,10 @@ let g:my_plugins = {
 \   "name": "vim-dim",
 \   "author": "jeffkreeftmeijer",
 \   "options": {"branch": "1.x"}},
+\ "nvim_lspconfig": {
+\   "name": "nvim-lspconfig",
+\   "author": "neovim",
+\   "options": {}},
 \ "nerdcommenter": {
 \   "name": "nerdcommenter",
 \   "author": "preservim",
@@ -355,10 +359,6 @@ let g:my_plugins = {
 \   "name": "nvim-treesitter",
 \   "author": "nvim-treesitter",
 \   "options": {"build": ":TSUpdate"}},
-\ "nvim_lspconfig": {
-\   "name": "nvim-lspconfig",
-\   "author": "neovim",
-\   "options": {"event": ["BufReadPre", "BufNewFile"]}},
 \ "nvim_cmp": {
 \   "name": "nvim-cmp",
 \   "author": "hrsh7th",
@@ -441,15 +441,6 @@ let g:my_plugins = {
 " `nvim-orgmode/orgmode` requires Neovim 0.8.0 and `nvim-treesitter`, and so I
 " think I'll enable `nvim-treesitter` for older versions too and see how it
 " goes.
-"
-" `neovim/nvim-lspconfig`: I think, at least for now, that it makes sense to tie
-" the list of configured LSP servers together with the plugin and not to create
-" separation of the LSP server list and LSP plugins. So right now, the feature
-" `nvim_lspconfig` basically means "the plugin together with its list of
-" configured LSP servers".
-" The lazy loading events were inspired from here: https://github.com/LazyVim/
-" LazyVim/blob/86ac9989ea15b7a69bb2bdf719a9a809db5ce526/lua/lazyvim/plugins/lsp/
-" init.lua#L5 Does lazy loading it this way really improve anything, though?
 "
 " `L3MON4D3/LuaSnip`: There is this optional post-install/-update step `make
 " install_jsregexp` which I have omitted for now, but may want to look into at

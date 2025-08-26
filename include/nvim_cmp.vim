@@ -13,14 +13,7 @@ lua << EOF
     mapping = {},
 
     sources = {
-      -- NOTE: At the moment, as far as I can tell, when running `:CmpStatus`,
-      -- `nvim_lsp` is listed under `# unknown source names`, as long as there
-      -- is no language server active, but this changes when a language server
-      -- has been attached to, so it should be okay.
       {name = "nvim_lsp"},
-      -- NOTE: There seems to be an issue with `cmp-omni` when `cmp-nvim-lsp` is
-      -- present too. It seems it's not trivial to fix, but maybe there'll be
-      -- some update in the future that helps.
       {name = "omni"},
       {name = "buffer"},
       {name = "path"}}
@@ -55,9 +48,6 @@ lua << EOF
   -- conditionally adding parts to the `config`, but whatever…
   cmp.setup(config)
 
-  -- The readme files for `nvim-cmp` and `cmp-nvim-lsp` advise to add these
-  -- capabilities to the enabled language servers. The english in the
-  -- documentation is rather broken, so I'm not exactly sure what this does.
   if vim.g.my_features.nvim_lspconfig == 1 then
     local capabilities = require("cmp_nvim_lsp").default_capabilities()
     local lspconfig = require("lspconfig")
