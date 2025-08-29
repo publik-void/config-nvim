@@ -102,7 +102,8 @@ local fish = {
 
 -- `efm-langserver` tool: `stanc`
 local stanc = {
-  lintCommand = "stanc --warn-pedantic --warn-uninitialized ${INPUT}",
+  lintCommand =
+    "stanc --warn-pedantic --warn-uninitialized --o /dev/null ${INPUT}",
   lintIgnoreExitCode = true,
   -- The message format is not systematic, hence trying to parse the
   -- messages is a nontrivial task. I'm sticking with simply displaying
