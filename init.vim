@@ -178,6 +178,12 @@ endif
 " Tell Python X to always use Python 3
 if has("pythonx") | set pyxversion=3 | endif
 
+" Detect TMUX
+if has_key(environ(), "TMUX")
+  let [socket, pid, session] = split(environ()["TMUX"], ",")
+  let g:tmux = {"socket": socket, "pid": pid,  "session": session}
+endif
+
 " {{{1 Features and plugins
 " {{{2 Notes
 
@@ -284,6 +290,7 @@ let g:my_features_list = [
 \ ["vim_commentary", 1],
 \ ["vim_surround", 1],
 \ ["vim_repeat", 1],
+\ ["vim_slime", exists("g:tmux")],
 \ ["vim_fugitive", 1],
 \ ["vimtex", 1],
 \ ["julia_vim", 0 && executable("julia")],
@@ -334,6 +341,10 @@ let g:my_plugins = {
 \ "vim_repeat": {
 \   "name": "vim-repeat",
 \   "author": "tpope",
+\   "options": {}},
+\ "vim_slime": {
+\   "name": "vim-slime",
+\   "author": "jpalardy",
 \   "options": {}},
 \ "vim_fugitive": {
 \   "name": "vim-fugitive",
@@ -397,6 +408,13 @@ let g:my_plugins = {
 \   "options": {
 \     "url": "https://gitlab.com/HiPhish/guile.vim.git"}},
 \ } " Separated this `}` to not unintentionally create a fold marker
+
+" Initializations to be done before loading the plugins. `lazy.nvim` supports an
+" `init` field to perform these, but for compatibility with non-`lazy.nvim`
+" setups I do it here instead.
+if g:my_features["vim_slime"]
+  let g:slime_no_mappings = 1
+endif
 
 " {{{2 Notes about features/plugins
 
