@@ -2,6 +2,7 @@
 -- vim: foldmethod=marker
 
 local telescope = require("telescope")
+local builtin = require("telescope.builtin")
 
 telescope.setup{
   defaults = {
@@ -15,13 +16,17 @@ if vim.g.my_features["luasnip"] ~= 0 then
   telescope.load_extension("luasnip")
 end
 
+-- Like the picker of builtin pickers, but also showing extensions
+local builtin_and_extensions = function()
+  return builtin.builtin({include_extensions = true})
+end
+
 -- Key mappings
-local builtin = require("telescope.builtin")
 vim.keymap.set("n", "<c-space>", builtin.buffers, {})
 vim.keymap.set("n", "<m-space>", builtin.find_files, {})
 -- NOTE: c-_ means Ctrl + /, but also/instead sets Ctrl + - on some platforms.
 -- This is confusing. Seems I need both mappings.
 vim.keymap.set("n", "<c-_>", builtin.live_grep,  {})
 vim.keymap.set("n", "<c-/>", builtin.live_grep,  {})
-vim.keymap.set("n", "<m-/>", builtin.help_tags,  {})
+vim.keymap.set("n", "<m-/>", builtin_and_extensions,  {})
 
