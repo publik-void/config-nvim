@@ -22,8 +22,8 @@ local builtin_and_extensions = function()
 end
 
 -- Key mappings
-vim.keymap.set("n", "<c-space>", builtin.buffers, {})
-vim.keymap.set("n", "<m-space>", builtin.find_files, {})
+vim.keymap.set("n", "<c-space>", builtin.find_files, {})
+vim.keymap.set("n", "<m-space>", builtin.buffers, {})
 -- NOTE: c-_ means Ctrl + /, but also/instead sets Ctrl + - on some platforms.
 -- This is confusing. Seems I need both mappings.
 vim.keymap.set("n", "<c-_>", builtin.live_grep,  {})
