@@ -220,6 +220,9 @@ endif
 " so I'll use that here, though I'm not completely sure.
 let g:my_source_type_support = {"vim": 1, "lua": has("nvim-0.5")}
 
+" Could add `gcc`, `clang`, `zig`, and others here.
+let g:my_has_c_compiler = (executable("cc") || executable("cl"))
+
 " A helper function to source a script file from `g:my_init_path`.
 " NOTE: I don't see myself using Vim9 script any time soon, so I don't support
 " it here.
@@ -301,7 +304,11 @@ let g:my_features_list = [
 \ ["julia_vim", executable("julia")],
 \ ["vim_asciidoc_folding", 1],
 \ ["stan_vim", 1],
-\ ["nvim_treesitter", has("nvim-0.5")],
+\ ["nvim_treesitter", has("nvim-0.11") &&
+\   executable("tree-sitter") &&
+\   executable("tar") &&
+\   executable("curl") &&
+\   g:my_has_c_compiler],
 \ ["nvim_cmp", has("nvim-0.7")],
 \ ["autocompletion", !g:my_is_slow_host],
 \ ["telescope", has("nvim-0.9")],
@@ -374,7 +381,7 @@ let g:my_plugins = {
 \ "nvim_treesitter": {
 \   "name": "nvim-treesitter",
 \   "author": "nvim-treesitter",
-\   "options": {"build": ":TSUpdate"}},
+\   "options": {"build": ":TSUpdate", "branch": "main"}},
 \ "nvim_cmp": {
 \   "name": "nvim-cmp",
 \   "author": "hrsh7th",
@@ -457,13 +464,13 @@ let g:my_plugins = {
 " reality yet. Treesitter support is also something that can be found as a
 " non-checked todo in GitHub issues.
 "
-" `nvim-treesitter/nvim-treesitter`: As of 2023-07, the readme file says it
-" requires the "latest" Neovim version, with "nightly recommended". This is
-" probably because the plugin is still heavily developed and probably even
-" influences the development of Neovim itself. However, e.g.
-" `nvim-orgmode/orgmode` requires Neovim 0.8.0 and `nvim-treesitter`, and so I
-" think I'll enable `nvim-treesitter` for older versions too and see how it
-" goes.
+" `nvim-treesitter/nvim-treesitter`: As of 2025-11-14, there is a rewrite on the
+" `main` branch of the repository. This only supports Neovim 0.11 and higher at
+" the moment, so I'll the plugin for those versions. In addition, their policy
+" is to always only support the latest stable release, which means in case I
+" don't immediately update all the Neovims where I want to use treesitter, I
+" should probably add fixed commits based on the stable release version in the
+" plugin's `options` dict.
 "
 " `L3MON4D3/LuaSnip`: There is this optional post-install/-update step `make
 " install_jsregexp` which I have omitted for now, but may want to look into at
