@@ -35,6 +35,14 @@ vim.lsp.enable("guile_ls")
 -- code it gets to see has the same version as the Julia process running the
 -- server or whether it actually respects a project's Julia version as
 -- specified in `Manifest.toml`.
+-- As of 2025-11-14, the document formatting capabilities (and also things like
+-- go-to-definition) don't seem to work. Neovim automatically sets `formatexpr`
+-- et al. to the LSP-based functions when the language server reports the
+-- capability. That makes sense, but it's also the reason why `gq` hasn't been
+-- working for me in `.jl` files for years now. One of the workarounds proposed
+-- in the LSP help file is to use `gw` instead and I guess I'll try that for
+-- now, because there doesn't seem to be a really clean-feeling way to just
+-- disable the capability or the `gq` remapping in this case.
 vim.lsp.enable("julials")
 
 -- For C++ et al.

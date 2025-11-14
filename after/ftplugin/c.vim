@@ -1,7 +1,8 @@
 " NOTE: This file gets sourced for C++ filetypes as well
 
-if !exists("g:my_features") ||
-\ g:my_features["native_filetype_plugins_overrides"]
+if exists("g:my_features") && !g:my_features["ftplugin_after"]
+  finish
+endif
 
 " Vim comes with a plugin called `ccomplete` which is provides an omnifunc that
 " uses `ctags` files for completion. This omnifunc is always set by the `c.vim`
@@ -25,7 +26,5 @@ setlocal commentstring=//\%s
 " this case, I prefer to not have that.
 if g:loaded_commentary
   let b:commentary_format = "//%s"
-endif
-
 endif
 

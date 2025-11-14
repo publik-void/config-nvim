@@ -1,5 +1,6 @@
-if !exists("g:my_features") ||
-\ g:my_features["native_filetype_plugins_overrides"]
+if exists("g:my_features") && !g:my_features["ftplugin_after"]
+  finish
+endif
 
 setlocal textwidth=79
 
@@ -7,7 +8,5 @@ setlocal textwidth=79
 " just don't understand it…
 if &omnifunc == "python3complete#Complete"
   setlocal omnifunc=
-endif
-
 endif
 

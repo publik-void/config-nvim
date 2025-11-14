@@ -4,14 +4,13 @@ if &modifiable
   finish
 endif
 
-if !exists("g:my_features") ||
-\ g:my_features["native_filetype_plugins_overrides"]
+if exists("g:my_features") && !g:my_features["ftplugin_after"]
+  finish
+endif
 
 " I'll have to see if this works for me, but thus far, I feel like folding does
 " not add much utility and only decreases ease of use in the fugitive buffer.
 setlocal nofoldenable
-
-endif
 
 " In a `fugitive` buffer, press `p` to run `:Git push`. I am not sure why a
 " mapping like this does not exist in the plugin – it could be that there's a

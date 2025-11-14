@@ -1,6 +1,5 @@
 " `init.vim` or '`.vimrc`' file thrown together by me.
 
-" (the following line is a modeline)
 " vim: foldmethod=marker
 
 " {{{1 General notes and todos
@@ -44,7 +43,8 @@
 " syntax highlighting underneath…
 " See https://github.com/neovim/neovim/issues/20456
 " Treesitter does a better job, so I'll manually enable it here for now
-if has("nvim-0.5")
+" Update: It was fixed in Neovim 0.10.5
+if has("nvim-0.5") && !has("nvim-0.10.5")
   augroup MyVimscriptLuaHighlightWorkaround
     autocmd FileType vim lua vim.treesitter.start()
   augroup END
@@ -283,8 +283,13 @@ let g:my_features_list = [
 \ ["symbol_substitution", 1],
 \ ["project_grep", 1],
 \ ["custom_html_slides_folding", 1],
-\ ["native_filetype_plugins_config", 1],
-\ ["native_filetype_plugins_overrides", 1],
+\ ["ftplugin_before", 1],
+\ ["ftplugin_after", 1],
+\ ["syntax_before", 1],
+\ ["syntax_after", 1],
+\ ["indent_before", 1],
+\ ["indent_after", 1],
+\ ["custom_filetype_detection", 1],
 \ ["nvim_lspconfig", has("nvim-0.11")],
 \ ["nerdcommenter", 0],
 \ ["vim_commentary", 1],
@@ -293,7 +298,7 @@ let g:my_features_list = [
 \ ["vim_slime", exists("g:tmux")],
 \ ["vim_fugitive", 1],
 \ ["vimtex", 1],
-\ ["julia_vim", 0 && executable("julia")],
+\ ["julia_vim", executable("julia")],
 \ ["vim_asciidoc_folding", 1],
 \ ["stan_vim", 1],
 \ ["nvim_treesitter", has("nvim-0.5")],
@@ -357,7 +362,7 @@ let g:my_plugins = {
 \ "julia_vim": {
 \   "name": "julia-vim",
 \   "author": "JuliaEditorSupport",
-\   "options": {"lazy": v:true, "event": "FileType julia"}},
+\   "options": {}},
 \ "vim_asciidoc_folding": {
 \   "name": "vim-asciidoc-folding",
 \   "author": "matcatc",
@@ -409,13 +414,6 @@ let g:my_plugins = {
 \     "url": "https://gitlab.com/HiPhish/guile.vim.git"}},
 \ } " Separated this `}` to not unintentionally create a fold marker
 
-" Initializations to be done before loading the plugins. `lazy.nvim` supports an
-" `init` field to perform these, but for compatibility with non-`lazy.nvim`
-" setups I do it here instead.
-if g:my_features["vim_slime"]
-  let g:slime_no_mappings = 1
-endif
-
 " {{{2 Notes about features/plugins
 
 " Regarding `tpope/vim-commentary` vs. `preservim/nerdcommenter`:
@@ -434,16 +432,23 @@ endif
 " stuff that the language server does not or can not, while the latter does not
 " add a whole lot more.
 "
-" `JuliaEditorSupport/julia-vim`: This plugin, as of 2023-06, does two things:
-" LaTeX-to-unicode substitutions and block-wise movements with `matchit`. It is
-" not a syntax or indentation plugin, as these are already included with Vim.
-" It seems to me that the block-wise movements work without the plugin too, not
-" sure why, but if I explicitly disable them for the plugin they don't work
-" anymore. Since this plugin adds like 30ms startup time, I lazy load it if
-" possible. For some reason it doesn't work with `lazy.nvim`s `ft` option, but
-" with `event = "FileType julia"` it's fine. Maybe I should see if there's some
-" other LaTeX-to-unicode plugin that's better than this one and always
-" available, as that's really the only functionality I seem to need from this.
+" `JuliaEditorSupport/julia-vim`: This plugin adds like 30ms startup time.
+" However, turns out that lazy-loading it results in the natively shipped Julia
+" syntax/indent/ftplugin files to be run first, so that the plugin's versions
+" will likely quit early. So I guess I'll have to accept that extra startup
+" time.
+" I lazy load it if possible. For some reason it doesn't work with `lazy.nvim`s
+" `ft` option, but with `event = "FileType julia"` it's fine (this was as of
+" 2023-06).
+" There is overlap between the `indent`, `syntax`, etc. files shipped with
+" (Neo-)Vim and those provided by the plugin `julia-vim`. In particular, the
+" files shipped with (Neo-)Vim are based on those of the plugin, but don't
+" perfectly track it – the plugin versions seem to be more up to date usually,
+" while the non-plugin versions may have some other additional changes for
+" whatever reason.
+" In any case, I've decided to do the configuration through that system instead
+" of a plugin-specific config file, so it applies both to the plugin, if loaded,
+" and the natively shipped files otherwise.
 "
 " `matcatc/vim-asciidoc-folding`: As of 2023-06, it seems that Neovim (though
 " not Vim) comes with an AsciiDoc syntax file, but there's no support for folds.
@@ -465,6 +470,15 @@ endif
 " some point.
 
 " {{{2 Sourcing feature files
+
+" For configurations that need to be done before the plugin is loaded.
+" `lazy.nvim` supports an `init` field to perform these, but for compatibility
+" with non-`lazy.nvim` setups I do it like this instead.
+for plugin in keys(g:my_plugins)
+  let is_enabled = g:my_features[plugin]
+  let name = StrCat("/include/", "before_", is_enabled ? "" : "no_", plugin)
+  call Include(name)
+endfor
 
 for [feature, is_enabled] in g:my_features_list
   let name = StrCat("/include/", is_enabled ? "" : "no_", feature)
