@@ -55,7 +55,7 @@ local languages = {
   "yaml",
   "zsh"}
 
-ts.install(languages, {summary = true}):wait(10 * 60 * 1000)
+ts.install(languages):wait(10 * 60 * 1000)
 
 local ts_augroup = vim.api.nvim_create_augroup("TreesitterAutoEnable",
   { clear = true })

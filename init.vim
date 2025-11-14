@@ -282,6 +282,8 @@ let g:my_features_list = [
 \ ["plugin_management", has("nvim-0.8") && v:lua.my.has_jit()],
 \ ["automatic_background_handling", has("nvim")],
 \ ["my_dim_colorscheme", 1],
+\ ["treesitter_highlight_relinks", has("nvim-0.8")],
+\ ["lsp_highlight_relinks", has("nvim-0.8")],
 \ ["basic_editor_setup", 1],
 \ ["symbol_substitution", 1],
 \ ["project_grep", 1],

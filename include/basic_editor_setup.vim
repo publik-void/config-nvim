@@ -26,6 +26,11 @@ set ttimeoutlen=20
 " By default, don't conceal
 set conceallevel=0
 
+" `Inspect` mapping as suggested in the docs
+if has("nvim-0.10")
+  nnoremap zS <cmd>Inspect<cr>
+endif
+
 " {{{1 Cursor movements and jumps
 
 " Make some left/right-movements wrap to the previous/next line
