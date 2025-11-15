@@ -769,15 +769,15 @@ endif
 set noautochdir
 
 " As there is some asynchronicity involved here, use this global variable to
-" make sure the project root directory change happens only once for git (level
-" 1) and once for LSP (level 2, taking precedence over the git root).
+" make sure the project root directory change happens only once for LSP (level
+" 1) and once for git (level 2, taking precedence over the LSP root).
 let g:my_cd_project_root_completion_level = 0
 
 " Handling for asynchronous git root finding
 let g:my_cd_project_root_git_stdout_buffer = ""
 
 function TryCdProjectRootNeovimGitHandler(job_id, data, event)
-  let level = 1
+  let level = 2
   if a:event == "stdout"
     let g:my_cd_project_root_git_stdout_buffer = join(
     \ [g:my_cd_project_root_git_stdout_buffer] + a:data, "")
@@ -791,7 +791,7 @@ function TryCdProjectRootNeovimGitHandler(job_id, data, event)
 endfunction
 
 function TryCdProjectRootVimGitHandler(channel)
-  let level = 1
+  let level = 2
   while ch_status(a:channel, {'part': 'out'}) == 'buffered'
     let g:my_cd_project_root_git_stdout_buffer = StrCat(
     \ g:my_cd_project_root_git_stdout_buffer, ch_read(a:channel))
@@ -821,7 +821,16 @@ function TryCdProjectRoot(...) abort
   if g:my_cd_project_root_completion_level >= a:1 | return | endif
   let project_root = ""
 
-  if a:1 == 1 && executable("git")
+  if a:1 == 1 && has("nvim-0.5.0")
+    " The last folder in this list tends to correspond to whetever file was
+    " opened last.
+    let workspace_folders = v:lua.vim.lsp.buf.list_workspace_folders()
+    if !empty(workspace_folders)
+      let project_root = workspace_folders[-1]
+    endif
+  endif
+
+  if a:1 == 2 && executable("git")
     " Use directory of current file as starting point, if available
     let working_dir = getcwd()
     let working_buf = bufname()
@@ -861,15 +870,6 @@ function TryCdProjectRoot(...) abort
     endif
   endif
 
-  if a:1 == 2 && has("nvim-0.5.0")
-    " The last folder in this list tends to correspond to whetever file was
-    " opened last.
-    let workspace_folders = v:lua.vim.lsp.buf.list_workspace_folders()
-    if !empty(workspace_folders)
-      let project_root = workspace_folders[-1]
-    endif
-  endif
-
   if !empty(project_root) && g:my_cd_project_root_completion_level < a:1
     execute "cd" project_root
     let g:my_cd_project_root_completion_level = a:1
@@ -877,9 +877,9 @@ function TryCdProjectRoot(...) abort
 endfunction
 
 augroup MyCdProjectRoot
-  autocmd VimEnter * call TryCdProjectRoot(1)
+  autocmd VimEnter * call TryCdProjectRoot(2)
   if exists("##LspAttach")
-    autocmd LspAttach * call TryCdProjectRoot(2)
+    autocmd LspAttach * call TryCdProjectRoot(1)
   endif
 augroup END
 
