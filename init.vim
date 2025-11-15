@@ -295,7 +295,7 @@ let g:my_features_list = [
 \ ["indent_before", 1],
 \ ["indent_after", 1],
 \ ["custom_filetype_detection", 1],
-\ ["nvim_lspconfig", has("nvim-0.11")],
+\ ["nvim_lspconfig", has("nvim-0.11.3")],
 \ ["nerdcommenter", 0],
 \ ["vim_commentary", 1],
 \ ["vim_surround", 1],
