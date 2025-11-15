@@ -313,7 +313,7 @@ let g:my_features_list = [
 \   g:my_has_c_compiler],
 \ ["nvim_cmp", has("nvim-0.7")],
 \ ["autocompletion", !g:my_is_slow_host],
-\ ["telescope", has("nvim-0.9")],
+\ ["telescope", has("nvim-0.10.4") && v:lua.my.has_jit()],
 \ ["luasnip", has("nvim-0.7")],
 \ ["orgmode", 0],
 \ ["guile", 1]]
@@ -400,16 +400,20 @@ let g:my_plugins = {
 \   "name": "telescope.nvim",
 \   "author": "nvim-telescope",
 \   "options": {
-\     "branch": "0.1.x",
 \     "dependencies": [
+\       {"name": "telescope-fzf-native.nvim", "author": "nvim-telescope",
+\         "options": {"build": "make",
+\           "enabled": g:my_has_c_compiler && executable("make")}},
 \       {"name": "plenary.nvim", "author": "nvim-lua"},
-\       {"name": "telescope-luasnip.nvim", "author": "benfowler", "options": {
-\         "enabled": s:AsBool(g:my_features["luasnip"])}}]}},
+\       {"name": "telescope-luasnip.nvim", "author": "benfowler",
+\         "options": {"enabled": s:AsBool(g:my_features["luasnip"])}}]}},
 \ "luasnip": {
 \   "name": "LuaSnip",
 \   "author": "L3MON4D3",
 \   "options": {
-\     "version": "1.*",
+\     "version": "v2.*",
+\     "build": g:my_has_c_compiler && executable("make") ?
+\       "make install_jsregexp" : v:null,
 \     "dependencies": [
 \       {"name": "friendly-snippets", "author": "rafamadriz"}]}},
 \ "orgmode": {
@@ -474,10 +478,6 @@ let g:my_plugins = {
 " should probably add fixed commits based on the stable release version in the
 " plugin's `options` dict.
 "
-" `L3MON4D3/LuaSnip`: There is this optional post-install/-update step `make
-" install_jsregexp` which I have omitted for now, but may want to look into at
-" some point.
-
 " {{{2 Sourcing feature files
 
 " For configurations that need to be done before the plugin is loaded.

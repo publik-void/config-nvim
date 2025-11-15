@@ -1,14 +1,17 @@
 -- (the following line is a modeline)
 -- vim: foldmethod=marker
 
--- Load VS Code style snippets from plugins
+-- Load VS Code and SnipMate style snippets from plugins
 -- Lazy loading is recommended
 require("luasnip.loaders.from_vscode").lazy_load()
-
--- Loading SnipMate style disabled for now
--- require("luasnip.loaders.from_snipmate").lazy_load()
+require("luasnip.loaders.from_snipmate").lazy_load()
 
 local luasnip = require("luasnip")
+
+-- I don't know if it is on purpose, but `friendly-snippets` puts the Lorem
+-- Ipsum generators in their own `loremipsum` filetype. This is a way of getting
+-- them back into buffers of all filetypes.
+luasnip.filetype_extend("all", {"loremipsum"})
 
 local choose_expand_telescope_closure = function(i)
   return function()

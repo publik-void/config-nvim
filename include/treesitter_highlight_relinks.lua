@@ -10,11 +10,11 @@ local relinks = {
   ["@constant.builtin"] = "Constant",
   ["@variable.builtin"] = "@variable",
 
-  ["@type.css"] = "Special",
-
   ["@punctuation.special"] = "Delimiter",
   ["@function.macro"] = "PreProc",
-  ["@keyword.conditional.ternary.julia"] = "Operator"}
+  ["@keyword.conditional.ternary"] = "Operator",
+
+  ["@type.css"] = "Special"}
 
 for name, link in pairs(relinks) do
   vim.api.nvim_set_hl(0, name, { link = link })

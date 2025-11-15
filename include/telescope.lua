@@ -11,6 +11,13 @@ telescope.setup{
   }
 }
 
+-- Setup compiled FZF sorter extension
+-- Re-using the conditions for the plugin here because I'm not sure how to check
+-- otherwise if the plugin exists.
+if vim.g.my_has_c_compiler and vim.fn.executable("make") then
+  telescope.load_extension("fzf")
+end
+
 -- Setup LuaSnip picker when `luasnip` feature is enabled
 if vim.g.my_features["luasnip"] ~= 0 then
   telescope.load_extension("luasnip")
